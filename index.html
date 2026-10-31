@@ -1,0 +1,46 @@
+<!doctype html>
+<!-- FICHIER 1/4 — index.html : la structure du site -->
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Los Santos à la loupe</title>
+  <meta name="description" content="Site de fans indépendant : détails cachés, easter eggs, mystères et références de GTA V.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <a href="#/" class="logo" aria-label="Accueil">
+      <span class="logo-loupe">◎</span>
+      <span>Los Santos <em>à la loupe</em></span>
+    </a>
+    <button class="burger" id="burger" aria-label="Ouvrir le menu" aria-expanded="false">☰</button>
+    <nav class="nav" id="nav">
+      <a href="#/">Accueil</a>
+      <a href="#/catalogue">Catalogue</a>
+      <a href="#/carte">Carte</a>
+      <a href="#/rumeurs">Rumeurs ou faits ?</a>
+      <a href="#/proposer" class="nav-cta">Proposer un détail</a>
+    </nav>
+  </header>
+
+  <main id="app" tabindex="-1"></main>
+
+  <footer class="footer">
+    <div class="footer-links">
+      <a href="#/a-propos">À propos</a>
+      <a href="#/sources">Sources</a>
+      <a href="#/mentions">Mentions légales</a>
+    </div>
+    <p class="disclaimer">
+      Site de fans indépendant. Non officiel, non affilié à Rockstar Games ni à Take-Two Interactive.
+      Les marques citées appartiennent à leurs propriétaires respectifs.
+    </p>
+  </footer>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
