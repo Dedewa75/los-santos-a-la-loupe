@@ -1,5 +1,5 @@
 // =====================================================
-// FICHIER 3/4 — data.js : le contenu du site
+// FICHIER 3/5 — data.js : le contenu du site
 // Pour ajouter une découverte : copie un bloc { ... } dans FICHES
 // =====================================================
 

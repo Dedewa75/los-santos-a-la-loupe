@@ -1,5 +1,5 @@
 /* =====================================================
-   FICHIER 2/4 — style.css : le design du site
+   FICHIER 2/5 — style.css : le design du site
    ===================================================== */
 :root {
   --nuit: #0d0a1a;
@@ -184,3 +184,19 @@ main { min-height: 70vh; outline: none; }
 .footer-links { display: flex; gap: 18px; justify-content: center; flex-wrap: wrap; margin-bottom: 12px; }
 .footer-links a { color: var(--doux); }
 .disclaimer { color: var(--doux); font-size: .85rem; max-width: 640px; margin: 0 auto; }
+
+/* ---------- Véhicules ---------- */
+.specs-mini { display: flex; gap: 10px; flex-wrap: wrap; font-size: .85rem; color: var(--texte); font-weight: 600; }
+.specs-grandes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; }
+.specs-grandes div { background: var(--nuit-2); border: 1px solid var(--ligne); border-radius: 12px; padding: 10px; text-align: center; }
+.specs-grandes strong { display: block; font-family: "Bebas Neue", sans-serif; font-size: 1.8rem; color: var(--neon); line-height: 1; }
+.specs-grandes span { font-size: .75rem; color: var(--doux); }
+.specs { width: 100%; border-collapse: collapse; font-size: .95rem; }
+.specs th { text-align: left; color: var(--doux); font-weight: 600; padding: 8px 10px 8px 0; vertical-align: top; width: 42%; }
+.specs td { padding: 8px 0; font-weight: 600; }
+.specs tr + tr { border-top: 1px solid var(--ligne); }
+.onglets { display: flex; gap: 6px; margin-bottom: 14px; border-bottom: 1px solid var(--ligne); }
+.onglet { background: none; border: none; color: var(--doux); font: inherit; font-weight: 700; padding: 10px 14px; cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -1px; }
+.onglet.actif { color: var(--texte); border-bottom-color: var(--soleil); }
+.bloc ul { padding-left: 20px; margin: 0; }
+.bloc ul li { margin-bottom: 6px; }

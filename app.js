@@ -1,5 +1,5 @@
 // =====================================================
-// FICHIER 4/4 — app.js : navigation, filtres, carte, formulaire
+// FICHIER 4/5 — app.js : navigation, filtres, carte, formulaire
 // =====================================================
 
 const app = document.getElementById("app");
@@ -402,6 +402,147 @@ function page404() {
   return `<div class="wrap section"><h1>Page introuvable</h1><p>Même avec une loupe, on ne trouve rien ici.</p><a class="btn btn-plein" href="#/">Retour à l'accueil</a></div>`;
 }
 
+
+// ---------- Véhicules ----------
+const prixTxt = n => n == null ? "—" : n.toLocaleString("fr-BE").replace(/ | /g, " ") + " GTA$";
+const typeV = t => TYPES_VEHICULE[t] || { nom: t, icone: "🚘" };
+
+function carteVehicule(v) {
+  const t = typeV(v.type);
+  const hist = v.histoire.dispo === true ? "Histoire ✓" : v.histoire.dispo === false ? "Online seulement" : "Histoire : ?";
+  return `
+  <a class="fiche-carte" href="#/vehicule/${v.id}">
+    <div class="illu" style="--c:#3b82f6"><span aria-hidden="true">${t.icone}</span></div>
+    <div class="corps">
+      <small class="note">${esc(v.marque)} · ${esc(v.classe)}</small>
+      <h3>${esc(v.nom)}</h3>
+      <div class="specs-mini">
+        <span>⚡ ${v.vitesse ? v.vitesse.kmh.toLocaleString("fr-BE") + " km/h" : "—"}</span>
+        <span>💰 ${prixTxt(v.online.prix)}</span>
+        <span>💺 ${v.places}</span>
+      </div>
+      <div class="meta"><span class="pastille">${t.nom}</span><span class="pastille">${hist}</span></div>
+    </div>
+  </a>`;
+}
+
+function pageVehicules() {
+  const classes = [...new Set(VEHICULES.map(v => v.classe))].sort();
+  return `
+  <div class="wrap section">
+    <h1>Véhicules</h1>
+    <p>Fiches techniques complètes : prix, places, vitesse réelle, inspiration, améliorations et détails cachés. Mode histoire et GTA Online.</p>
+    <div class="bandeau-demo">📏 <strong>Vitesse :</strong> on affiche la vitesse <em>mesurée</em> en jeu, véhicule entièrement amélioré (tests de Broughy1322, relevés par GTABase). C'est plus fiable que la jauge du jeu ou que les descriptions officielles, souvent exagérées. Les prix Online peuvent varier avec les promotions.</div>
+    <div class="filtres">
+      <input id="v-q" type="search" placeholder="Rechercher (ex : Adder, Pegassi…)">
+      <select id="v-type"><option value="">Tous types</option>${Object.entries(TYPES_VEHICULE).map(([k, t]) => `<option value="${k}">${t.icone} ${t.nom}</option>`).join("")}</select>
+      <select id="v-classe"><option value="">Toutes classes</option>${classes.map(c => `<option>${esc(c)}</option>`).join("")}</select>
+      <select id="v-mode"><option value="">Tous modes</option><option value="histoire">Dispo en mode histoire</option><option value="online">GTA Online</option></select>
+      <select id="v-tri"><option value="nom">Tri : nom</option><option value="vitesse">Tri : plus rapide</option><option value="prix-">Tri : moins cher</option><option value="prix+">Tri : plus cher</option></select>
+    </div>
+    <div class="compteur" id="v-compteur"></div>
+    <div class="grille" id="v-resultats"></div>
+  </div>`;
+}
+
+function filtrerVehicules() {
+  const sansAccent = x => x.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+  const q = sansAccent(document.getElementById("v-q").value.trim());
+  const ty = document.getElementById("v-type").value;
+  const cl = document.getElementById("v-classe").value;
+  const mo = document.getElementById("v-mode").value;
+  const tri = document.getElementById("v-tri").value;
+  let res = VEHICULES.filter(v =>
+    (!q || sansAccent(v.nom + " " + v.marque + " " + (v.inspiration || "")).includes(q)) &&
+    (!ty || v.type === ty) && (!cl || v.classe === cl) &&
+    (!mo || (mo === "histoire" ? v.histoire.dispo === true : v.online.prix != null))
+  );
+  const cmp = {
+    nom: (a, b) => a.nom.localeCompare(b.nom),
+    vitesse: (a, b) => b.vitesse.kmh - a.vitesse.kmh,
+    "prix-": (a, b) => a.online.prix - b.online.prix,
+    "prix+": (a, b) => b.online.prix - a.online.prix
+  };
+  res.sort(cmp[tri]);
+  document.getElementById("v-compteur").textContent = `${res.length} véhicule${res.length > 1 ? "s" : ""}`;
+  document.getElementById("v-resultats").innerHTML = res.length ? res.map(carteVehicule).join("") : `<p class="vide">Aucun véhicule. Essaie d'enlever un filtre.</p>`;
+}
+
+function pageVehicule(id) {
+  const v = VEHICULES.find(x => x.id === id);
+  if (!v) return page404();
+  const t = typeV(v.type);
+  const ligne = (k, val) => `<tr><th>${k}</th><td>${val}</td></tr>`;
+  const histoireHtml = v.histoire.dispo === true
+    ? `<p><span class="statut ok">Disponible</span></p><p>${esc(v.histoire.texte)}</p>`
+    : v.histoire.dispo === false
+      ? `<p><span class="statut rum">Absent du mode histoire</span></p><p>Ce véhicule n'existe que dans GTA Online.</p>`
+      : `<p><span class="statut wait">Non confirmé</span></p><p>Nos sources ne précisent pas si ce véhicule est disponible en mode histoire. À vérifier.</p>`;
+  return `
+  <div class="wrap">
+    <div class="fil"><a href="#/vehicules">Véhicules</a> › ${esc(v.nom)}</div>
+    <div class="fiche-tete">
+      <div class="illu" style="--c:#3b82f6"><span aria-hidden="true">${t.icone}</span></div>
+      <div class="titre">
+        <small class="note">${esc(v.marque)} · ${esc(v.classe)}</small>
+        <h1 style="font-size:clamp(2rem,6vw,3.2rem)">${esc(v.nom)}</h1>
+        <div class="specs-grandes">
+          <div><strong>${v.vitesse.kmh.toLocaleString("fr-BE")}</strong><span>km/h mesurés</span></div>
+          <div><strong>${v.places}</strong><span>place${v.places > 1 ? "s" : ""}</span></div>
+          <div><strong>${v.tour || "—"}</strong><span>temps au tour</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="fiche-grille">
+      <div>
+        <div class="bloc">
+          <div class="onglets" role="tablist">
+            <button class="onglet actif" role="tab" data-onglet="histoire" aria-selected="true">🎮 Mode histoire</button>
+            <button class="onglet" role="tab" data-onglet="online" aria-selected="false">🌐 GTA Online</button>
+          </div>
+          <div class="panneau" data-panneau="histoire">${histoireHtml}</div>
+          <div class="panneau" data-panneau="online" hidden>
+            <table class="specs">
+              ${ligne("Prix", prixTxt(v.online.prix))}
+              ${ligne("Où l'acheter", esc(v.online.vendeur))}
+            </table>
+            ${v.online.texte ? `<p>${esc(v.online.texte)}</p>` : ""}
+          </div>
+        </div>
+        <div class="bloc">
+          <h3>🔧 Améliorations et équipement</h3>
+          <ul>${v.ameliorations.map(a => `<li>${esc(a)}</li>`).join("")}</ul>
+        </div>
+        <div class="bloc">
+          <h3>🔍 Détails cachés</h3>
+          <ul>${v.caches.map(a => `<li>${esc(a)}</li>`).join("")}</ul>
+        </div>
+      </div>
+      <aside>
+        <div class="bloc">
+          <h3>Fiche technique</h3>
+          <table class="specs">
+            ${ligne("Type", t.icone + " " + t.nom)}
+            ${ligne("Marque", esc(v.marque))}
+            ${ligne("Classe", esc(v.classe))}
+            ${ligne("Places", v.places)}
+            ${ligne("Transmission", esc(v.transmission))}
+            ${ligne("Vitesse mesurée", `${v.vitesse.kmh.toLocaleString("fr-BE")} km/h<br><small class="note">${v.vitesse.mph.toLocaleString("fr-BE")} mph</small>`)}
+            ${ligne("Temps au tour", v.tour || "—")}
+            ${ligne("Inspiré de", v.inspiration ? esc(v.inspiration) : "Non précisé par nos sources")}
+            ${ligne("Ajouté le", esc(v.sortie))}
+          </table>
+        </div>
+        <div class="bloc">
+          <h3>Sources</h3>
+          <ul>${v.sources.map(s => `<li><a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.nom)}</a></li>`).join("")}</ul>
+          <p class="note">Données relevées le 1er novembre 2026. Vitesse et temps au tour : tests de Broughy1322.</p>
+        </div>
+      </aside>
+    </div>
+  </div>`;
+}
+
 // ---------- Routeur ----------
 function router() {
   const hash = location.hash.replace(/^#/, "") || "/";
@@ -415,6 +556,8 @@ function router() {
     case "catalogue": html = pageCatalogue(params); break;
     case "fiche":     html = pageFiche(parts[1]); break;
     case "carte":     html = pageCarte(params); break;
+    case "vehicules": html = pageVehicules(); break;
+    case "vehicule":  html = pageVehicule(parts[1]); break;
     case "rumeurs":   html = pageRumeurs(); break;
     case "proposer":  html = pageProposer(); break;
     case "a-propos":  html = pageAPropos(); break;
@@ -428,7 +571,7 @@ function router() {
   // Lien actif dans le menu
   document.querySelectorAll(".nav a").forEach(a => {
     const cible = a.getAttribute("href").replace("#", "");
-    a.classList.toggle("actif", cible === "/" ? chemin === "/" : chemin.startsWith(cible));
+    a.classList.toggle("actif", cible === "/" ? chemin === "/" : chemin.startsWith(cible.replace(/s$/, "")));
   });
   fermerMenu();
 
@@ -451,6 +594,16 @@ function router() {
       p.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); afficherLieu(p.dataset.lieu); } });
     });
     afficherLieu(params.get("lieu") || "");
+  }
+  if (parts[0] === "vehicules") {
+    ["v-q", "v-type", "v-classe", "v-mode", "v-tri"].forEach(id => document.getElementById(id).addEventListener("input", filtrerVehicules));
+    filtrerVehicules();
+  }
+  if (parts[0] === "vehicule") {
+    document.querySelectorAll(".onglet").forEach(b => b.addEventListener("click", () => {
+      document.querySelectorAll(".onglet").forEach(x => { const on = x === b; x.classList.toggle("actif", on); x.setAttribute("aria-selected", String(on)); });
+      document.querySelectorAll(".panneau").forEach(pn => { pn.hidden = pn.dataset.panneau !== b.dataset.onglet; });
+    }));
   }
   if (parts[0] === "proposer") {
     document.getElementById("form-proposer").addEventListener("submit", envoyerProposition);
