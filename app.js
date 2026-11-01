@@ -393,8 +393,12 @@ function pageMentions() {
     <p>Les textes et illustrations originales du site appartiennent à leur auteur. Les courtes mentions d'éléments du jeu sont faites à des fins de commentaire et d'information.</p>
     <h2>Données personnelles</h2>
     <p>Le formulaire « Proposer un détail » collecte uniquement les informations que tu choisis d'envoyer (pseudo, e-mail facultatif, contenu). Elles servent seulement à la modération et à te recontacter si besoin. Conformément au RGPD, tu peux demander l'accès ou la suppression de tes données à l'adresse de contact ci-dessus.</p>
+    <h2>Espace Communauté (comptes membres)</h2>
+    <p>L'espace Communauté est réservé aux membres inscrits de <strong>16 ans et plus</strong>. Pour fonctionner, il enregistre : ton adresse e-mail (connexion), ton pseudo, ta plateforme de jeu, tes messages, tes annonces et tes signalements. Ces données servent uniquement à faire fonctionner l'espace et à le modérer. Elles ne sont ni vendues ni partagées.</p>
+    <p>Elles sont hébergées par Supabase (serveurs situés dans l'Union européenne) et conservées tant que ton compte existe. Tu peux demander à tout moment l'accès, la correction ou la suppression de ton compte et de tes données à l'adresse de contact ci-dessus.</p>
+    <p><strong>Signaler un contenu :</strong> bouton 🚩 sur chaque message et annonce, ou par e-mail à l'adresse de contact. Les annonces sont vérifiées avant publication. La modération peut masquer des messages et suspendre des comptes qui ne respectent pas le règlement.</p>
     <h2>Cookies</h2>
-    <p>Ce site n'utilise pas de cookies publicitaires ni de traceurs.</p>
+    <p>Ce site n'utilise pas de cookies publicitaires ni de traceurs. L'espace Communauté enregistre seulement ta session de connexion dans ton navigateur, pour que tu restes connecté.</p>
   </div>`;
 }
 

@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Communauté — Los Santos à la loupe</title>
+  <meta name="description" content="L'espace de discussion des fans de GTA : chat par salons et recherche de joueurs pour tes activités. Site de fans indépendant.">
+  <meta name="theme-color" content="#0d0a1a">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="communaute.css">
+</head>
+<body class="communaute">
+  <header class="topbar">
+    <a href="index.html" class="logo" aria-label="Retour au site">
+      <span class="logo-loupe">◎</span>
+      <span>Los Santos <em>à la loupe</em></span>
+    </a>
+    <div class="c-entete-droite">
+      <button class="btn-installer" id="btn-installer" hidden>📲 Installer l'appli</button>
+      <span id="c-qui" class="c-qui"></span>
+    </div>
+  </header>
+
+  <main id="c-app" class="c-app" aria-live="polite">
+    <div class="c-centre"><p class="note">Chargement…</p></div>
+  </main>
+
+  <nav class="c-onglets" id="c-onglets" hidden aria-label="Sections de l'appli"></nav>
+
+  <div class="c-toast" id="c-toast" role="status" hidden></div>
+
+  <dialog class="c-dialog" id="c-reglement">
+    <h2>Règlement de la communauté</h2>
+    <ol>
+      <li><strong>16 ans minimum.</strong> GTA est un jeu PEGI 18 : en t'inscrivant, tu confirmes avoir au moins 16 ans.</li>
+      <li><strong>Respect.</strong> Pas d'insultes, de harcèlement, de racisme, d'homophobie ni de menaces.</li>
+      <li><strong>Pas de contenu illégal ou choquant</strong>, pas de contenu sexuel, pas de liens douteux.</li>
+      <li><strong>Pas de triche ni de vente.</strong> Pas de mods de triche, de « money drop », de vente de comptes ou d'argent du jeu.</li>
+      <li><strong>Protège ta vie privée.</strong> Ne partage pas ton adresse, ton numéro, tes mots de passe, et ne demande pas ceux des autres.</li>
+      <li><strong>Pas de spam ni de pub.</strong></li>
+      <li><strong>Les annonces sont validées</strong> par la modération avant d'être publiées.</li>
+      <li><strong>Signale</strong> ce qui ne respecte pas ces règles avec le bouton 🚩. La modération peut masquer des messages et bannir des comptes.</li>
+    </ol>
+    <p class="note">Site de fans indépendant, non affilié à Rockstar Games ni à Take-Two Interactive.</p>
+    <form method="dialog"><button class="btn btn-plein">J'ai compris</button></form>
+  </dialog>
+
+  <script src="communaute-config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+  <script src="communaute.js"></script>
+</body>
+</html>

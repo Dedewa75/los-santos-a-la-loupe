@@ -1,0 +1,70 @@
+/* =====================================================
+   communaute.css — style de l'appli communautaire
+   (s'ajoute à style.css)
+   ===================================================== */
+body.communaute { padding-bottom: 80px; }
+.c-entete-droite { display: flex; align-items: center; gap: 10px; }
+.c-qui { color: var(--doux); font-weight: 700; font-size: .9rem; }
+.btn-installer { background: var(--carte); color: var(--neon); border: 1px solid var(--neon); border-radius: 10px; padding: 6px 10px; font: inherit; font-weight: 700; font-size: .85rem; cursor: pointer; }
+.c-app { max-width: 900px; margin: 0 auto; padding: 16px; min-height: auto; }
+.c-centre { display: grid; place-items: center; min-height: 60vh; }
+.c-carte { width: 100%; max-width: 480px; }
+.c-carte .form { margin-top: 12px; }
+.erreur { color: var(--rum); font-weight: 600; }
+
+/* Barre d'onglets en bas (style appli) */
+.c-onglets { position: fixed; left: 0; right: 0; bottom: 0; z-index: 60; display: flex; justify-content: center; gap: 4px;
+  background: rgba(13,10,26,.95); backdrop-filter: blur(10px); border-top: 1px solid var(--ligne);
+  padding: 6px 8px calc(6px + env(safe-area-inset-bottom)); }
+.c-onglets button { flex: 1; max-width: 140px; display: flex; flex-direction: column; align-items: center; gap: 2px;
+  background: none; border: none; color: var(--doux); font: inherit; font-size: .78rem; font-weight: 700; padding: 6px; border-radius: 10px; cursor: pointer; }
+.c-onglets button span { font-size: 1.3rem; }
+.c-onglets button.actif { color: var(--texte); background: var(--carte); }
+
+/* Chat */
+.c-chat { display: flex; flex-direction: column; height: calc(100vh - 170px); height: calc(100dvh - 170px); }
+.c-salons { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: thin; }
+.c-salon { flex: none; background: var(--carte); color: var(--doux); border: 1px solid var(--ligne); border-radius: 99px; padding: 8px 14px; font: inherit; font-weight: 700; font-size: .88rem; cursor: pointer; }
+.c-salon.actif { color: #fff; border-color: var(--soleil); background: linear-gradient(90deg, rgba(255,138,61,.25), rgba(255,61,139,.25)); }
+.c-salon-desc { margin: 4px 0 8px; }
+.c-fil { flex: 1; overflow-y: auto; background: var(--nuit-2); border: 1px solid var(--ligne); border-radius: var(--rayon); padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+.c-msg { background: var(--carte); border: 1px solid var(--ligne); border-radius: 14px; padding: 10px 12px; max-width: 85%; align-self: flex-start; }
+.c-msg.moi { align-self: flex-end; border-color: rgba(255,138,61,.5); }
+.c-msg.masque { opacity: .55; border-style: dashed; }
+.c-msg-tete { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: .85rem; }
+.c-msg-tete time { color: var(--doux); font-size: .75rem; }
+.c-msg p { margin: 4px 0 0; white-space: pre-wrap; word-break: break-word; }
+.c-msg-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+.c-msg-actions button, .btn-lien { background: none; border: 1px solid var(--ligne); color: var(--doux); border-radius: 8px; padding: 4px 8px; font: inherit; font-size: .75rem; cursor: pointer; }
+.c-msg-actions button:hover, .btn-lien:hover { color: var(--texte); border-color: var(--doux); }
+.c-envoi { display: flex; gap: 8px; margin-top: 10px; }
+.c-envoi input { flex: 1; min-width: 0; padding: 12px; border-radius: 12px; border: 1px solid var(--ligne); background: var(--nuit-2); color: var(--texte); font: inherit; font-size: 1rem; }
+
+/* Pages (activités, profil, admin) */
+.c-page h1 { font-size: clamp(2rem, 7vw, 3rem); }
+.c-titre-ligne { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.c-filtres { grid-template-columns: 1fr 1fr; }
+.c-annonce h3 { margin: 8px 0 4px; }
+.c-annonce p { margin: 4px 0; }
+.c-ligne { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 0; border-top: 1px solid var(--ligne); }
+.c-ligne:first-child { border-top: none; }
+.c-modo { border-top: 1px solid var(--ligne); padding: 12px 0; }
+.c-modo:first-child { border-top: none; }
+.c-modo blockquote { margin: 8px 0; padding: 8px 12px; border-left: 3px solid var(--soleil); background: var(--nuit-2); border-radius: 8px; }
+
+/* Notifications */
+.c-toast { position: fixed; left: 50%; top: 76px; transform: translateX(-50%); z-index: 80; max-width: calc(100% - 32px);
+  background: var(--carte); border: 1px solid var(--ok); color: var(--texte); padding: 10px 16px; border-radius: 12px; font-weight: 600; box-shadow: 0 10px 30px rgba(0,0,0,.5); }
+.c-toast.erreur { border-color: var(--rum); }
+
+/* Règlement */
+.c-dialog { max-width: 560px; width: calc(100% - 32px); background: var(--carte); color: var(--texte); border: 1px solid var(--ligne); border-radius: var(--rayon); padding: 20px; }
+.c-dialog::backdrop { background: rgba(0,0,0,.7); }
+.c-dialog ol { padding-left: 20px; }
+.c-dialog li { margin-bottom: 8px; }
+
+@media (max-width: 520px) {
+  .c-filtres { grid-template-columns: 1fr; }
+  .c-msg { max-width: 95%; }
+  .logo span:last-child { font-size: 1.2rem; }
+}
