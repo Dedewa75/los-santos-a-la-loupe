@@ -434,7 +434,7 @@ function pageVehicules() {
     <p>Fiches techniques complètes : prix, places, vitesse réelle, inspiration, améliorations et détails cachés. Mode histoire et GTA Online.</p>
     <div class="bandeau-demo">📏 <strong>Vitesse :</strong> on affiche la vitesse <em>mesurée</em> en jeu, véhicule entièrement amélioré (tests de Broughy1322, relevés par GTABase). C'est plus fiable que la jauge du jeu ou que les descriptions officielles, souvent exagérées. Les prix Online peuvent varier avec les promotions.</div>
     <div class="filtres">
-      <input id="v-q" type="search" placeholder="Rechercher (ex : Adder, Pegassi…)">
+      <input id="v-q" type="search" placeholder="Rechercher (ex : Adder, Pegassi, Franklin, Tron…)">
       <select id="v-type"><option value="">Tous types</option>${Object.entries(TYPES_VEHICULE).map(([k, t]) => `<option value="${k}">${t.icone} ${t.nom}</option>`).join("")}</select>
       <select id="v-classe"><option value="">Toutes classes</option>${classes.map(c => `<option>${esc(c)}</option>`).join("")}</select>
       <select id="v-mode"><option value="">Tous modes</option><option value="histoire">Dispo en mode histoire</option><option value="online">GTA Online</option></select>
@@ -453,7 +453,7 @@ function filtrerVehicules() {
   const mo = document.getElementById("v-mode").value;
   const tri = document.getElementById("v-tri").value;
   let res = VEHICULES.filter(v =>
-    (!q || sansAccent(v.nom + " " + v.marque + " " + (v.inspiration || "")).includes(q)) &&
+    (!q || sansAccent([v.nom, v.marque, v.classe, v.inspiration || "", v.histoire.texte, v.online.texte, ...v.caches].join(" ")).includes(q)) &&
     (!ty || v.type === ty) && (!cl || v.classe === cl) &&
     (!mo || (mo === "histoire" ? v.histoire.dispo === true : v.online.prix != null))
   );

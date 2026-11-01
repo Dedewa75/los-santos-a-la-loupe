@@ -9,10 +9,13 @@ const TYPES_VEHICULE = {
   voiture: { nom: "Voiture", icone: "🏎️" },
   moto: { nom: "Moto", icone: "🏍️" },
   helico: { nom: "Hélicoptère", icone: "🚁" },
-  avion: { nom: "Avion", icone: "✈️" }
+  avion: { nom: "Avion", icone: "✈️" },
+  militaire: { nom: "Militaire", icone: "🪖" }
 };
 
 const src = nom => ({ nom: "GTABase — " + nom, url: "https://www.gtabase.com/grand-theft-auto-v/vehicles/" + nom.toLowerCase().replace(/[()]/g, "").replace(/\s+/g, "-") });
+
+const GB = (slug, nom) => ({ nom: "GTABase — " + nom, url: "https://www.gtabase.com/grand-theft-auto-v/vehicles/" + slug });
 
 const VEHICULES = [
   {
@@ -214,6 +217,208 @@ const VEHICULES = [
     ameliorations: ["Missiles à tête chercheuse", "Contre-mesures", "Décollage vertical (VTOL) et vol stationnaire", "Arrière pare-balles"],
     caches: ["Il décolle à la verticale, sans piste, comme le vrai Harrier.", "Le nom Hydra vient de GTA San Andreas, où l'avion existait déjà."],
     sources: [src("Mammoth Hydra")]
+  },
+  // ===== LOT 2 — ajouté le 1er novembre 2026 =====
+  {
+    id: "entity-xf", nom: "Entity XF", marque: "Overflod", classe: "Super", type: "voiture",
+    places: 2, transmission: "Intégrale (AWD)", inspiration: "Koenigsegg CC8S et Agera (feux arrière de Lamborghini Aventador)",
+    vitesse: { kmh: 196.7, mph: 122.25 }, tour: "1:01.678", sortie: "17 septembre 2013 (jeu de base)",
+    histoire: { dispo: true, texte: "Achetable 795 000 $ sur l'internet du jeu, après la mission « I Fought the Law… »." },
+    online: { prix: 795000, vendeur: "Legendary Motorsport", texte: "Peut être une cible des « Exotic Exports »." },
+    ameliorations: ["Amélioration complète : 283 550 GTA$", "Brouilleur anti-missiles", "Arrière pare-balles"],
+    caches: ["Sa description dans le jeu se moque longuement de la Suède, le pays du vrai Koenigsegg qui l'a inspirée."],
+    sources: [GB("overflod-entity-xf", "Overflod Entity XF")]
+  },
+  {
+    id: "osiris", nom: "Osiris", marque: "Pegassi", classe: "Super", type: "voiture",
+    places: 2, transmission: "Intégrale (AWD)", inspiration: "Pagani Huayra, LaFerrari",
+    vitesse: { kmh: 196.3, mph: 122 }, tour: "1:00.794", sortie: "10 juin 2015 (Ill-Gotten Gains, partie 1)",
+    histoire: { dispo: true, texte: "Achetable 1 950 000 $ sur l'internet du jeu." },
+    online: { prix: 1950000, vendeur: "Legendary Motorsport", texte: "" },
+    ameliorations: ["Amélioration complète : 298 400 GTA$", "Non blindée"],
+    caches: ["Ajoutée avec une mise à jour sur le thème du luxe tape-à-l'œil : l'esprit Pagani, en version Los Santos."],
+    sources: [GB("pegassi-osiris", "Pegassi Osiris")]
+  },
+  {
+    id: "cheetah", nom: "Cheetah", marque: "Grotti", classe: "Super", type: "voiture",
+    places: 2, transmission: "Propulsion (RWD)", inspiration: "Ferrari Enzo, Koenigsegg Agera, GTA Spano",
+    vitesse: { kmh: 194.3, mph: 120.75 }, tour: "1:02.396", sortie: "17 septembre 2013 (jeu de base)",
+    histoire: { dispo: true, texte: "Achetable 650 000 $ sur l'internet du jeu. Apparaît dans la mission « I Fought the Law… »." },
+    online: { prix: 650000, vendeur: "Legendary Motorsport", texte: "" },
+    ameliorations: ["Amélioration complète : 279 500 GTA$", "Brouilleur anti-missiles"],
+    caches: ["Une vétérane : la Cheetah existe dans GTA III, Vice City, San Andreas, Liberty City Stories, Vice City Stories… et GTA 6."],
+    sources: [GB("grotti-cheetah", "Grotti Cheetah")]
+  },
+  {
+    id: "vacca", nom: "Vacca", marque: "Pegassi", classe: "Super", type: "voiture",
+    places: 2, transmission: "Propulsion (RWD)", inspiration: "Lamborghini Gallardo, McLaren MP4-12C",
+    vitesse: { kmh: 193.9, mph: 120.5 }, tour: "1:03.864", sortie: "17 septembre 2013 (jeu de base)",
+    histoire: { dispo: true, texte: "Achetable 240 000 $ sur l'internet du jeu. Apparaît dans les missions « The Wrap Up » et « Meltdown »." },
+    online: { prix: 240000, vendeur: "Legendary Motorsport", texte: "" },
+    ameliorations: ["Amélioration complète : 278 350 GTA$", "Brouilleur anti-missiles", "Arrière pare-balles"],
+    caches: ["« Vacca » signifie « vache » en italien : un clin d'œil à Lamborghini, dont l'emblème est un taureau."],
+    sources: [GB("pegassi-vacca", "Pegassi Vacca")]
+  },
+  {
+    id: "bullet", nom: "Bullet", marque: "Vapid", classe: "Super", type: "voiture",
+    places: 2, transmission: "Propulsion (RWD)", inspiration: "Ford GT",
+    vitesse: { kmh: 192.7, mph: 119.75 }, tour: "1:07.450", sortie: "17 septembre 2013 (jeu de base)",
+    histoire: { dispo: true, texte: "Pas en vente : à voler (Portola Drive à Rockford Hills, Kortz Center, Vinewood…). Apparaît dans la mission « Repossession »." },
+    online: { prix: 155000, vendeur: "Legendary Motorsport", texte: "Peut aussi être demandée par Simeon (Export Requests, 20 000 GTA$) ou être une cible des « Exotic Exports »." },
+    ameliorations: ["Amélioration complète : 263 500 GTA$", "Brouilleur anti-missiles", "Arrière pare-balles"],
+    caches: ["Vapid est la marque du jeu qui parodie Ford : la Bullet est sa version de la Ford GT.", "Elle existait déjà dans San Andreas et GTA IV."],
+    sources: [GB("vapid-bullet", "Vapid Bullet")]
+  },
+  {
+    id: "voltic", nom: "Voltic", marque: "Coil", classe: "Super", type: "voiture",
+    places: 2, transmission: "Propulsion (RWD), 1 rapport", inspiration: "Tesla Roadster, Lotus Elise",
+    vitesse: { kmh: 171, mph: 106.25 }, tour: "1:05.315", sortie: "17 septembre 2013 (jeu de base)",
+    histoire: { dispo: true, texte: "Pas en vente : à voler (Kortz Center, parking de l'aéroport, Vinewood Bowl, Rockford Hills…)." },
+    online: { prix: 150000, vendeur: "Retirée de la vente (juin 2023)", texte: "Prix d'origine : 150 000 GTA$. Encore récupérable via le LS Car Meet (copie du véhicule d'un autre joueur) ou les rotations hebdomadaires." },
+    ameliorations: ["Amélioration complète : 202 750 GTA$", "Toit amovible", "Version spéciale : Rocket Voltic (avec propulseur)"],
+    caches: ["100 % électrique : une seule vitesse, comme une vraie voiture électrique.", "Sa description se moque de son autonomie, plus courte que la batterie d'un téléphone iFruit (le faux iPhone du jeu)."],
+    sources: [GB("coil-voltic", "Coil Voltic")]
+  },
+  {
+    id: "x80-proto", nom: "X80 Proto", marque: "Grotti", classe: "Super", type: "voiture",
+    places: 2, transmission: "Intégrale (AWD)", inspiration: "Concept Ferrari F80, GreenGT LeMans",
+    vitesse: { kmh: 206.4, mph: 128.25 }, tour: "1:00.677", sortie: "21 juin 2016 (Further Adventures in Finance and Felony)",
+    histoire: { dispo: false, texte: "" },
+    online: { prix: 2700000, vendeur: "Legendary Motorsport", texte: "" },
+    ameliorations: ["Amélioration complète : 299 450 GTA$", "Aileron actif", "Non blindée"],
+    caches: ["Le vrai concept Ferrari F80 dont elle s'inspire n'a jamais été produit : dans le jeu, tu peux t'en acheter un."],
+    sources: [GB("grotti-x80-proto", "Grotti X80 Proto")]
+  },
+  {
+    id: "sultan-rs", nom: "Sultan RS", marque: "Karin", classe: "Super", type: "voiture",
+    places: 2, transmission: "Intégrale (AWD)", inspiration: "Lexus IS, Mitsubishi Lancer Evo VI, Subaru Impreza",
+    vitesse: { kmh: 190.3, mph: 118.25 }, tour: "1:04.030", sortie: "28 janvier 2016",
+    histoire: { dispo: false, texte: "" },
+    online: { prix: 807000, vendeur: "Sultan classique + conversion chez Benny's", texte: "Acheter une Sultan classique (12 000 GTA$), puis la convertir chez Benny's Original Motor Works (795 000 GTA$)." },
+    ameliorations: ["Amélioration complète : 481 619 GTA$", "Nombreuses livrées", "Non blindée"],
+    caches: ["Une berline transformée en « Super » : c'est l'une des rares voitures classées Super qui ressemble à une voiture de tous les jours.", "La Sultan RS existait déjà dans GTA IV."],
+    sources: [GB("karin-sultan-rs", "Karin Sultan RS")]
+  },
+  {
+    id: "jester", nom: "Jester", marque: "Dinka", classe: "Sport", type: "voiture",
+    places: 2, transmission: "Intégrale (AWD)", inspiration: null,
+    vitesse: { kmh: 192.3, mph: 119.5 }, tour: "1:02.980", sortie: "4 mars 2014 (mise à jour Business)",
+    histoire: { dispo: true, texte: "Pas en vente : à voler, dans la circulation ou près des Los Santos Customs (Burton, aéroport, La Mesa)." },
+    online: { prix: 240000, vendeur: "Retirée de la vente (juin 2023)", texte: "Prix d'origine : 240 000 GTA$. Encore récupérable via le LS Car Meet ou les rotations hebdomadaires." },
+    ameliorations: ["Amélioration complète : 304 850 GTA$", "Arrière pare-balles"],
+    caches: ["Hybride électrique selon le jeu.", "La Jester existait déjà dans GTA San Andreas."],
+    sources: [GB("dinka-jester", "Dinka Jester")]
+  },
+  {
+    id: "massacro", nom: "Massacro", marque: "Dewbauchee", classe: "Sport", type: "voiture",
+    places: 2, transmission: "Propulsion (RWD)", inspiration: "Corvette C7, Ferrari F12 Berlinetta, Aston Martin Vanquish",
+    vitesse: { kmh: 197.6, mph: 122.75 }, tour: "1:03.364", sortie: "13 mai 2014 (mise à jour High Life)",
+    histoire: { dispo: true, texte: "Pas en vente : à voler, dans la circulation ou près des Los Santos Customs (Burton, aéroport, La Mesa)." },
+    online: { prix: 275000, vendeur: "Legendary Motorsport", texte: "Peut être une cible des « Exotic Exports »." },
+    ameliorations: ["Amélioration complète : 309 800 GTA$", "Brouilleur anti-missiles"],
+    caches: ["Dewbauchee est la marque du jeu qui rappelle Aston Martin."],
+    sources: [GB("dewbauchee-massacro", "Dewbauchee Massacro")]
+  },
+  {
+    id: "dominator", nom: "Dominator", marque: "Vapid", classe: "Muscle", type: "voiture",
+    places: 2, transmission: "Propulsion (RWD)", inspiration: "Ford Mustang",
+    vitesse: { kmh: 194.3, mph: 120.75 }, tour: "1:08.118", sortie: "17 septembre 2013 (jeu de base)",
+    histoire: { dispo: true, texte: "Pas en vente : à voler dans la rue." },
+    online: { prix: 35000, vendeur: "Non précisé par notre source", texte: "Peut aussi être volée dans la rue. Simeon peut la demander (Export Requests, 5 250 GTA$)." },
+    ameliorations: ["Amélioration complète : 221 325 GTA$", "Brouilleur anti-missiles", "Protection arrière disponible chez Los Santos Customs"],
+    caches: ["Une muscle car à 35 000 GTA$ qui va plus vite que plusieurs supercars de cette liste."],
+    sources: [GB("vapid-dominator", "Vapid Dominator")]
+  },
+  {
+    id: "buffalo-s", nom: "Buffalo S", marque: "Bravado", classe: "Sport", type: "voiture",
+    places: 4, transmission: "Propulsion (RWD)", inspiration: "Dodge Charger SRT8",
+    vitesse: { kmh: 181.9, mph: 113 }, tour: "1:07.601", sortie: "17 septembre 2013 (jeu de base)",
+    histoire: { dispo: true, texte: "La Buffalo S blanche est la voiture personnelle de Franklin. Elle l'accompagne pendant toute l'histoire et réapparaît toujours devant chez lui." },
+    online: { prix: 96000, vendeur: "Southern S.A. Super Autos", texte: "Peut être une cible des « Exotic Exports »." },
+    ameliorations: ["Amélioration complète : 240 375 GTA$", "Brouilleur anti-missiles"],
+    caches: ["🚗 Voiture de Franklin : il a aussi une moto, la Bagger."],
+    sources: [GB("bravado-buffalo-s", "Bravado Buffalo S")]
+  },
+  {
+    id: "tailgater", nom: "Tailgater", marque: "Obey", classe: "Berline", type: "voiture",
+    places: 4, transmission: "Propulsion (RWD)", inspiration: "Audi A6",
+    vitesse: { kmh: 169, mph: 105 }, tour: "1:10.872", sortie: "17 septembre 2013 (jeu de base)",
+    histoire: { dispo: true, texte: "La Tailgater noire est la voiture personnelle de Michael, pendant toute l'histoire. D'autres exemplaires peuvent être volés dans la rue." },
+    online: { prix: 55000, vendeur: "Non précisé par notre source", texte: "Peut aussi être volée dans la rue. Simeon peut la demander (Export Requests, 8 250 GTA$)." },
+    ameliorations: ["Amélioration complète : 157 100 GTA$", "Brouilleur anti-missiles"],
+    caches: ["🚗 Voiture de Michael : une berline sage, à l'image du braqueur « rangé » qu'il prétend être.", "Obey est la marque du jeu qui rappelle Audi."],
+    sources: [GB("obey-tailgater", "Obey Tailgater")]
+  },
+  {
+    id: "bodhi", nom: "Bodhi", marque: "Canis", classe: "Tout-terrain", type: "voiture",
+    places: 4, transmission: "Intégrale (AWD)", inspiration: "Avant de Land Rover Series III, Kaiser M715",
+    vitesse: { kmh: 160.1, mph: 99.5 }, tour: "1:12.956", sortie: "17 septembre 2013 (jeu de base)",
+    histoire: { dispo: true, texte: "Le Bodhi rouge est le véhicule personnel de Trevor. Il l'accompagne pendant toute l'histoire et réapparaît toujours devant chez lui." },
+    online: { prix: 25000, vendeur: "Non précisé par notre source", texte: "Peut aussi être volé dans la rue." },
+    ameliorations: ["Amélioration complète : 141 100 GTA$", "Brouilleur anti-missiles"],
+    caches: ["🚙 Véhicule de Trevor : un vieux 4x4 increvable, comme son propriétaire."],
+    sources: [GB("canis-bodhi", "Canis Bodhi")]
+  },
+  {
+    id: "sanchez", nom: "Sanchez", marque: "Maibatsu", classe: "Moto (tout-terrain)", type: "moto",
+    places: 2, transmission: "Propulsion (RWD)", inspiration: "Yamaha YZ450F, Kawasaki KX450F, Honda CRF450X",
+    vitesse: { kmh: 192.3, mph: 119.5 }, tour: "1:03.665", sortie: "17 septembre 2013 (jeu de base)",
+    histoire: { dispo: true, texte: "Pas en vente : à voler, notamment à Sandy Shores et Grapeseed. Un code de triche permet aussi de la faire apparaître." },
+    online: { prix: 8000, vendeur: "Non précisé par notre source", texte: "Peut aussi être volée dans la rue." },
+    ameliorations: ["Amélioration complète : 109 200 GTA$", "Brouilleur anti-missiles"],
+    caches: ["Une des motos les plus anciennes de la série : elle est apparue dans Vice City, San Andreas, GTA IV… et revient dans GTA 6."],
+    sources: [GB("maibatsu-sanchez", "Maibatsu Sanchez")]
+  },
+  {
+    id: "shotaro", nom: "Shotaro", marque: "Nagasaki", classe: "Moto", type: "moto",
+    places: 1, transmission: "Propulsion (RWD)", inspiration: "Lotus C-01, moto lumineuse du film Tron: Legacy",
+    vitesse: { kmh: 199.2, mph: 123.75 }, tour: "0:57.490", sortie: "8 novembre 2016 (mise à jour Bikers)",
+    histoire: { dispo: false, texte: "" },
+    online: { prix: 2225000, vendeur: "Legendary Motorsport", texte: "Achetable seulement après avoir joué une manche du mode Adversaire « Deadline »." },
+    ameliorations: ["Amélioration complète : 258 100 GTA$", "Brouilleur anti-missiles"],
+    caches: ["Hommage direct aux motos lumineuses de Tron.", "Le mode « Deadline » qui la débloque reprend d'ailleurs le principe des courses de Tron : chaque moto laisse une traînée mortelle derrière elle."],
+    sources: [GB("nagasaki-shotaro", "Nagasaki Shotaro")]
+  },
+  {
+    id: "rhino", nom: "Rhino", marque: "—", classe: "Militaire", type: "militaire",
+    places: 1, transmission: "Chenilles", inspiration: "Leopard 2A4, M1 Abrams",
+    vitesse: { kmh: 65.6, mph: 40.75 }, tour: "2:23.910", sortie: "17 septembre 2013 (jeu de base)",
+    histoire: { dispo: true, texte: "Achetable 3 000 000 $, ou à voler. Apparaît dans « The Paleto Score » et dans le Rampage militaire." },
+    online: { prix: 1500000, vendeur: "Warstock Cache & Carry", texte: "Livré par Pegasus. Ne peut être ni revendu ni modifié." },
+    ameliorations: ["Canon", "Blindé et pare-balles de tous les côtés", "Il faut environ 4 missiles à tête chercheuse pour le détruire"],
+    caches: ["Le plus lent de tous nos véhicules (environ 65 km/h)… mais aussi l'un des plus durs à arrêter.", "Le Rhino est présent depuis GTA III."],
+    sources: [GB("rhino-tank", "Rhino Tank")]
+  },
+  {
+    id: "frogger", nom: "Frogger", marque: "Maibatsu", classe: "Hélicoptère", type: "helico",
+    places: 4, transmission: "—", inspiration: "Eurocopter EC135 / EC145",
+    vitesse: { kmh: 227.7, mph: 141.5 }, tour: "0:56.757", sortie: "17 septembre 2013 (jeu de base)",
+    histoire: { dispo: true, texte: "Achetable 1 300 000 $, ou à voler (port de Los Santos, héliports de Vespucci…). Après la mission « Three's Company », Trevor reçoit un Frogger noir, garé à l'aérodrome de Sandy Shores." },
+    online: { prix: 1300000, vendeur: "Elitás Travel", texte: "Offert avec le Criminal Enterprise Starter Pack. Ne peut pas être revendu." },
+    ameliorations: ["Descente en rappel possible", "Brouilleur anti-missiles", "Arrière pare-balles", "Peinture uniquement"],
+    caches: ["🚁 Hélico de Trevor : sa version noire porte les couleurs de Trevor Philips Industries."],
+    sources: [GB("maibatsu-frogger", "Maibatsu Frogger")]
+  },
+  {
+    id: "dodo", nom: "Dodo", marque: "Mammoth", classe: "Hydravion", type: "avion",
+    places: 4, transmission: "—", inspiration: null,
+    vitesse: { kmh: 216.1, mph: 134.25 }, tour: "0:55.335", sortie: "18 novembre 2014 (sortie PS4 / Xbox One)",
+    histoire: { dispo: true, texte: "Débloqué via l'événement aléatoire « Sea Plane » : il faut le voler dans une crique au sud de la chaîne de San Chiaski. Ensuite achetable 500 000 $ et visible au lac de Vinewood et sur l'Alamo Sea." },
+    online: { prix: 500000, vendeur: "Elitás Travel", texte: "Ne peut pas être revendu." },
+    ameliorations: ["Flotte sur l'eau", "Des passagers peuvent s'accrocher sur les côtés", "Brouilleur anti-missiles", "Peinture uniquement"],
+    caches: ["Ajouté seulement avec la version PS4 / Xbox One : les joueurs PS3 / Xbox 360 ne l'ont jamais eu.", "Le nom Dodo vient de GTA III et San Andreas."],
+    sources: [GB("mammoth-dodo", "Mammoth Dodo")]
+  },
+  {
+    id: "duster", nom: "Duster", marque: "Western Company", classe: "Avion", type: "avion",
+    places: 2, transmission: "—", inspiration: "Stearman Model 75",
+    vitesse: { kmh: 231.7, mph: 144 }, tour: "0:54.522", sortie: "17 septembre 2013 (jeu de base)",
+    histoire: { dispo: true, texte: "Achetable 275 000 $, ou à voler (Grapeseed, hangar de McKenzie Field, aérodrome de Sandy Shores). Apparaît dans la mission « Minor Turbulence »." },
+    online: { prix: 275000, vendeur: "Elitás Travel", texte: "Ne peut pas être revendu." },
+    ameliorations: ["Blindé", "Peinture uniquement"],
+    caches: ["Un vieux biplan d'épandage agricole qui bat en vitesse l'hélicoptère Frogger.", "Blindé, mais le pilote meurt dès la première roquette."],
+    sources: [GB("western-company-duster", "Western Company Duster")]
+
   }
 ];
 
