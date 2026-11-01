@@ -388,7 +388,9 @@ function pageMentions() {
     <h2>Hébergement</h2>
     <p>Render Services, Inc. — San Francisco, Californie, États-Unis — render.com</p>
     <h2>Site de fans non officiel</h2>
-    <p>Ce site n'est pas officiel et n'est ni affilié, ni approuvé, ni sponsorisé par Rockstar Games ou Take-Two Interactive. Grand Theft Auto, GTA et les noms associés sont des marques de leurs propriétaires respectifs, citées ici à des fins d'information. Aucun logo, image ou musique du jeu n'est reproduit sur ce site.</p>
+    <p>Ce site n'est pas officiel et n'est ni affilié, ni approuvé, ni sponsorisé par Rockstar Games ou Take-Two Interactive. Grand Theft Auto, GTA et les noms associés sont des marques de leurs propriétaires respectifs, citées ici à des fins d'information. Aucun logo, aucune image ni aucune musique du jeu n'est reproduit sur ce site.</p>
+    <h2>Crédits photos</h2>
+    <p>Les photos de véhicules réels proviennent de Wikimedia Commons, sous licences libres (Creative Commons ou domaine public). L'auteur, la licence et la source sont indiqués sous chaque photo. Elles sont affichées en taille réduite et ne représentent pas des images du jeu.</p>
     <h2>Propriété intellectuelle</h2>
     <p>Les textes et illustrations originales du site appartiennent à leur auteur. Les courtes mentions d'éléments du jeu sont faites à des fins de commentaire et d'information.</p>
     <h2>Données personnelles</h2>
@@ -405,6 +407,7 @@ function page404() {
 
 // ---------- Véhicules ----------
 const prixTxt = n => n == null ? "—" : n.toLocaleString("fr-BE").replace(/ | /g, " ") + " GTA$";
+const photoReelle = id => (typeof PHOTOS_REELLES !== "undefined" && PHOTOS_REELLES[id]) || null;
 const typeV = t => TYPES_VEHICULE[t] || { nom: t, icone: "🚘" };
 
 function carteVehicule(v) {
@@ -412,7 +415,9 @@ function carteVehicule(v) {
   const hist = v.histoire.dispo === true ? "Histoire ✓" : v.histoire.dispo === false ? "Online seulement" : "Histoire : ?";
   return `
   <a class="fiche-carte" href="#/vehicule/${v.id}">
-    <div class="illu" style="--c:#3b82f6"><span aria-hidden="true">${t.icone}</span></div>
+    ${photoReelle(v.id)
+      ? `<div class="illu illu-photo"><img src="${esc(photoReelle(v.id).src)}" alt="${esc(photoReelle(v.id).legende)}, le véhicule réel qui a inspiré le ${esc(v.nom)}" loading="lazy"><span class="tag-reel">MODÈLE RÉEL</span></div>`
+      : `<div class="illu" style="--c:#3b82f6"><span aria-hidden="true">${t.icone}</span></div>`}
     <div class="corps">
       <small class="note">${esc(v.marque)} · ${esc(v.classe)}</small>
       <h3>${esc(v.nom)}</h3>
@@ -509,6 +514,17 @@ function pageVehicule(id) {
             ${v.online.texte ? `<p>${esc(v.online.texte)}</p>` : ""}
           </div>
         </div>
+        ${photoReelle(v.id) ? (() => { const ph = photoReelle(v.id); return `
+        <div class="bloc">
+          <h3>📸 Le vrai modèle</h3>
+          <figure class="photo-reelle">
+            <img src="${esc(ph.src)}" alt="${esc(ph.legende)}" loading="lazy">
+            <figcaption>
+              <strong>${esc(ph.legende)}</strong>, véhicule réel qui a inspiré le ${esc(v.nom)}. Ce n'est pas une image du jeu.<br>
+              <small>Photo : ${esc(ph.auteur)} · ${ph.licenceUrl ? `<a href="${esc(ph.licenceUrl)}" target="_blank" rel="noopener">${esc(ph.licence)}</a>` : esc(ph.licence)} · <a href="${esc(ph.page)}" target="_blank" rel="noopener">Wikimedia Commons</a> · redimensionnée</small>
+            </figcaption>
+          </figure>
+        </div>`; })() : ""}
         <div class="bloc">
           <h3>🔧 Améliorations et équipement</h3>
           <ul>${v.ameliorations.map(a => `<li>${esc(a)}</li>`).join("")}</ul>
