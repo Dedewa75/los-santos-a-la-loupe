@@ -286,7 +286,7 @@ const VEHICULES = [
     histoire: { dispo: false, texte: "" },
     online: { prix: 2700000, vendeur: "Legendary Motorsport", texte: "" },
     ameliorations: ["Amélioration complète : 299 450 GTA$", "Aileron actif", "Non blindée"],
-    caches: ["Le vrai concept Ferrari F80 dont elle s'inspire n'a jamais été produit : dans le jeu, tu peux t'en acheter un."],
+    caches: ["Elle s'inspire d'un concept de designer baptisé « Ferrari F80 », imaginé bien avant que Ferrari ne sorte une vraie voiture de ce nom."],
     sources: [GB("grotti-x80-proto", "Grotti X80 Proto")]
   },
   {
@@ -418,6 +418,197 @@ const VEHICULES = [
     ameliorations: ["Blindé", "Peinture uniquement"],
     caches: ["Un vieux biplan d'épandage agricole qui bat en vitesse l'hélicoptère Frogger.", "Blindé, mais le pilote meurt dès la première roquette."],
     sources: [GB("western-company-duster", "Western Company Duster")]
+  },
+  // ===== LOT 3 — références cachées, ajouté le 1er novembre 2026 =====
+  {
+    id: "stromberg", nom: "Stromberg", marque: "Ocelot", classe: "Sportive classique", type: "voiture",
+    places: 2, transmission: "Propulsion (RWD)", inspiration: "Maserati Bora et la Lotus Esprit sous-marine « Wet Nellie » du film James Bond L'Espion qui m'aimait",
+    vitesse: { kmh: 181.5, mph: 112.75 }, tour: "1:07.351", sortie: "12 décembre 2017 (The Doomsday Heist)",
+    histoire: { dispo: false, texte: "" },
+    online: { prix: 2500000, vendeur: "Warstock Cache & Carry", texte: "Prix réduit de 1 875 000 GTA$ après la mission du Doomsday Heist correspondante (installation requise). Prix d'origine : 3 185 350 GTA$, modifié le 27 avril 2023." },
+    ameliorations: ["Se transforme en sous-marin", "Missiles à tête chercheuse", "Blindée", "Amélioration complète : 259 100 GTA$"],
+    caches: ["🎬 Hommage à James Bond : comme la Lotus de L'Espion qui m'aimait (1977), elle plonge et roule sous l'eau.", "Son nom reprend celui de Karl Stromberg, le méchant de ce même film."],
+    sources: [GB("ocelot-stromberg", "Ocelot Stromberg")]
+  },
+  {
+    id: "toreador", nom: "Toreador", marque: "Pegassi", classe: "Sportive classique", type: "voiture",
+    places: 4, transmission: "Propulsion (RWD)", inspiration: "Lamborghini Marzal (concept de 1967)",
+    vitesse: { kmh: 217.7, mph: 135.25 }, tour: "0:56.624", sortie: "15 décembre 2020 (The Cayo Perico Heist)",
+    histoire: { dispo: false, texte: "" },
+    online: { prix: 4250000, vendeur: "Warstock Cache & Carry", texte: "Prix d'origine : 3 660 000 GTA$, modifié le 27 avril 2023." },
+    ameliorations: ["Se transforme en sous-marin", "Propulseur (rocket boost)", "Missiles à tête chercheuse illimités", "Blindée : environ 6 missiles pour la détruire", "Amélioration complète : 340 750 GTA$"],
+    caches: ["Comme la Stromberg, elle plonge sous l'eau, mais avec un propulseur et des missiles en illimité.", "« Toreador » (toréador) poursuit le thème taurin de Pegassi, la marque qui parodie Lamborghini."],
+    sources: [GB("toreador", "Pegassi Toreador")]
+  },
+  {
+    id: "duke-o-death", nom: "Duke O'Death", marque: "Imponte", classe: "Muscle", type: "voiture",
+    places: 2, transmission: "Propulsion (RWD)", inspiration: "Dodge Charger / Pontiac GTO",
+    vitesse: { kmh: 184.3, mph: 114.5 }, tour: "1:09.519", sortie: "18 novembre 2014 (sortie PS4 / Xbox One)",
+    histoire: { dispo: true, texte: "Débloquée par l'événement aléatoire « Duel » : prends la voiture garée près d'une station-service dans le désert de Grand Senora, puis échappe à la bande qui te prend en chasse. Ensuite achetable 279 000 $ et visible à El Burro Heights et près de Harmony." },
+    online: { prix: 665000, vendeur: "Warstock Cache & Carry", texte: "Était offerte aux joueurs revenus de l'ancienne génération de consoles." },
+    ameliorations: ["Blindée", "Côtés et arrière pare-balles", "Brouilleur anti-missiles", "Amélioration complète : 119 100 GTA$"],
+    caches: ["🎬 L'événement qui la débloque s'appelle « Duel », comme le premier film de Spielberg (1971), où un automobiliste est traqué sur une route du désert.", "Au départ, elle était réservée au mode histoire des consoles PS4 / Xbox One."],
+    sources: [GB("imponte-duke-o-death", "Imponte Duke O'Death")]
+  },
+  {
+    id: "space-docker", nom: "Space Docker", marque: "BF", classe: "Tout-terrain", type: "voiture",
+    places: 2, transmission: "Propulsion (RWD)", inspiration: "Buggy très modifié",
+    vitesse: { kmh: 141.2, mph: 87.75 }, tour: "1:23.139", sortie: "17 septembre 2013 (jeu de base)",
+    histoire: { dispo: true, texte: "Récompense après avoir ramassé toutes les pièces de vaisseau spatial pour Omega (missions secondaires jusqu'à « The Final Frontier »). Il apparaît ensuite dans le garage de chaque personnage, menu « Special Vehicles »." },
+    online: { prix: null, vendeur: "Récompense uniquement (pas en vente)", texte: "Débloqué au palier de sponsor 500 de l'Arena War." },
+    ameliorations: ["Arrière pare-balles", "Aucune modification possible"],
+    caches: ["👽 Un buggy « extraterrestre » construit avec les pièces de vaisseau d'Omega, le hippie obsédé par les ovnis.", "En Online, il faut atteindre le palier 500 de l'Arena War : un des véhicules les plus longs à obtenir."],
+    sources: [GB("space-docker", "BF Space Docker")]
+  },
+  {
+    id: "liberator", nom: "Liberator", marque: "Vapid", classe: "Tout-terrain", type: "voiture",
+    places: 2, transmission: "Intégrale (AWD)", inspiration: "Monster truck sur base de Ford Expedition (peinture façon « Star Bigfoot »)",
+    vitesse: { kmh: 130.8, mph: 81.25 }, tour: "1:16.594", sortie: "1er juillet 2014 (Independence Day)",
+    histoire: { dispo: true, texte: "Pas en vente : à voler uniquement." },
+    online: { prix: 556511, vendeur: "Retiré de la vente (juin 2023)", texte: "N'était achetable que pendant l'événement annuel de la fête nationale américaine (Independence Day). Encore récupérable via le LS Car Meet." },
+    ameliorations: ["Aucune modification possible", "Rangé comme véhicule Pegasus"],
+    caches: ["🇺🇸 Un monster truck patriotique, sorti pour le 4 juillet.", "Son prix d'origine bizarrement précis : 556 511 GTA$."],
+    sources: [GB("vapid-the-liberator", "Vapid Liberator")]
+  },
+  {
+    id: "phantom-wedge", nom: "Phantom Wedge", marque: "JoBuilt", classe: "Utilitaire", type: "voiture",
+    places: 5, transmission: "Propulsion (RWD)", inspiration: "Camion Peterbilt et le camion à lame de l'émission MythBusters",
+    vitesse: { kmh: 158.1, mph: 98.25 }, tour: "1:20.080", sortie: "13 décembre 2016 (Import/Export)",
+    histoire: { dispo: false, texte: "" },
+    online: { prix: 2553600, vendeur: "Warstock Cache & Carry", texte: "Prix réduit de 1 920 000 GTA$ après la mission « Special Vehicle Work » (entrepôt de véhicules requis). Ne peut pas être modifié." },
+    ameliorations: ["Lame à l'avant pour pousser les véhicules", "Attelage de remorquage", "Arrière pare-balles"],
+    caches: ["📺 Inspiré du camion-bélier construit par l'émission MythBusters (Les Stars de la science) pour balayer les voitures.", "Un camion à 5 places : de quoi emmener toute l'équipe."],
+    sources: [GB("jobuilt-phantom-wedge", "JoBuilt Phantom Wedge")]
+  },
+  {
+    id: "scramjet", nom: "Scramjet", marque: "Declasse", classe: "Super", type: "voiture",
+    places: 2, transmission: "Propulsion (RWD)", inspiration: "La Mach 5 du dessin animé Speed Racer (années 60), Alfa Romeo 33/2 Coupé Speciale",
+    vitesse: { kmh: 210.4, mph: 130.75 }, tour: "0:57.775", sortie: "21 août 2018 (After Hours)",
+    histoire: { dispo: false, texte: "" },
+    online: { prix: 4000000, vendeur: "Warstock Cache & Carry", texte: "Se modifie uniquement dans l'atelier du centre d'opérations mobile (MOC) ou de l'Avenger. Prix d'origine : 3 480 000 GTA$, modifié le 27 avril 2023." },
+    ameliorations: ["Propulseur (rocket boost)", "Saut", "Missiles à tête chercheuse", "Amélioration complète : 281 650 GTA$"],
+    caches: ["📺 Hommage à la Mach 5 de Speed Racer : comme elle, la Scramjet peut sauter."],
+    sources: [GB("scramjet", "Declasse Scramjet")]
+  },
+  {
+    id: "vigilante", nom: "Vigilante", marque: "Grotti", classe: "Super", type: "voiture",
+    places: 2, transmission: "Propulsion (RWD)", inspiration: "La Batmobile des films Batman (1989) et Batman, le défi (1992)",
+    vitesse: { kmh: 236.2, mph: 146.75 }, tour: "0:55.872", sortie: "27 octobre 2017 (Smuggler's Run)",
+    histoire: { dispo: false, texte: "" },
+    online: { prix: 3750000, vendeur: "Warstock Cache & Carry", texte: "" },
+    ameliorations: ["Pare-balles devant, sur les côtés et à l'arrière", "Propulseur (rocket boost)", "Missiles à tête chercheuse", "Amélioration complète : 435 600 GTA$"],
+    caches: ["🦇 La Batmobile de Tim Burton, version Los Santos.", "Avec son propulseur, c'est la voiture la plus rapide du site : environ 236 km/h mesurés."],
+    sources: [GB("grotti-vigilante", "Grotti Vigilante")]
+  },
+  {
+    id: "issi", nom: "Issi", marque: "Weeny", classe: "Citadine", type: "voiture",
+    places: 2, transmission: "Traction (FWD)", inspiration: "Mini Hatch / Mini Cooper (2001-2007)",
+    vitesse: { kmh: 169.8, mph: 105.5 }, tour: "1:16.542", sortie: "17 septembre 2013 (jeu de base)",
+    histoire: { dispo: true, texte: "Achetable 18 000 $, ou à voler. Apparaît dans les missions « Doting Dad », le Rampage des hipsters et « Paparazzo – Reality Check »." },
+    online: { prix: 18000, vendeur: "Non précisé par notre source", texte: "Peut aussi être volée dans la rue." },
+    ameliorations: ["Cabriolet (toit souple)", "Brouilleur anti-missiles", "Amélioration complète : 135 430 GTA$"],
+    caches: ["🚗 L'Issi jaune est la voiture de Tracey, la fille de Michael.", "Weeny (« minuscule ») est la marque du jeu qui parodie Mini."],
+    sources: [GB("weeny-issi", "Weeny Issi")]
+  },
+  {
+    id: "elegy-retro", nom: "Elegy Retro Custom", marque: "Annis", classe: "Sport", type: "voiture",
+    places: 2, transmission: "Intégrale (AWD)", inspiration: "Nissan Skyline GT-R",
+    vitesse: { kmh: 185.9, mph: 115.5 }, tour: "1:03.212", sortie: "13 décembre 2016 (Import/Export)",
+    histoire: { dispo: false, texte: "" },
+    online: { prix: 999000, vendeur: "Elegy RH8 + conversion chez Benny's", texte: "Acheter une Elegy RH8 (95 000 GTA$, gratuite avec un compte Social Club), puis la convertir chez Benny's (904 000 GTA$). Peut être une cible des « Exotic Exports »." },
+    ameliorations: ["Réglage spécial drift disponible au LS Car Meet (désactive les autres améliorations de performance)", "Nombreuses livrées", "Amélioration complète : 701 544 GTA$"],
+    caches: ["La version « rétro » de l'Elegy RH8 : la Skyline GT-R, ancêtre de la GT-R moderne.", "Le nom Elegy existait déjà dans GTA San Andreas, et il revient dans GTA 6."],
+    sources: [GB("annis-elegy-retro-custom", "Annis Elegy Retro Custom")]
+  },
+  {
+    id: "811", nom: "811", marque: "Pfister", classe: "Super", type: "voiture",
+    places: 2, transmission: "Intégrale (AWD)", inspiration: "Porsche 918 Spyder, Koenigsegg Regera",
+    vitesse: { kmh: 210.4, mph: 130.75 }, tour: "1:02.946", sortie: "28 juin 2016 (Further Adventures in Finance and Felony)",
+    histoire: { dispo: false, texte: "" },
+    online: { prix: 1135000, vendeur: "Legendary Motorsport", texte: "Peut être une cible des « Exotic Exports »." },
+    ameliorations: ["Toit amovible", "Hybride électrique", "Brouilleur anti-missiles", "Arrière pare-balles", "Amélioration complète : 302 000 GTA$"],
+    caches: ["Pfister est la marque du jeu qui parodie Porsche : la 811 est sa version de la 918 hybride."],
+    sources: [GB("pfister-811", "Pfister 811")]
+  },
+  {
+    id: "xa-21", nom: "XA-21", marque: "Ocelot", classe: "Super", type: "voiture",
+    places: 2, transmission: "Intégrale (AWD)", inspiration: "Jaguar C-X75, McLaren P1, Maserati GranTurismo, Koenigsegg Regera",
+    vitesse: { kmh: 197.1, mph: 122.5 }, tour: "0:59.459", sortie: "15 août 2017 (Gunrunning)",
+    histoire: { dispo: false, texte: "" },
+    online: { prix: 1670000, vendeur: "Legendary Motorsport", texte: "Prix baissé le 14 mai 2026 (avant : 2 375 000 GTA$). Peut être une cible des « Exotic Exports »." },
+    ameliorations: ["Aileron actif", "Hybride électrique", "Brouilleur anti-missiles", "Amélioration complète : 374 500 GTA$"],
+    caches: ["Ocelot est la marque du jeu qui parodie Jaguar (l'ocelot est un petit félin, comme le jaguar)."],
+    sources: [GB("ocelot-xa-21", "Ocelot XA-21")]
+  },
+  {
+    id: "itali-gtb", nom: "Itali GTB", marque: "Progen", classe: "Super", type: "voiture",
+    places: 2, transmission: "Intégrale (AWD)", inspiration: "McLaren 570S / 650S / P14, Trion Nemesis",
+    vitesse: { kmh: 201.6, mph: 125.25 }, tour: "1:01.311", sortie: "10 janvier 2017 (Import/Export)",
+    histoire: { dispo: false, texte: "" },
+    online: { prix: 1189000, vendeur: "Benny's Original Motor Works", texte: "" },
+    ameliorations: ["Existe en version Custom chez Benny's", "Amélioration complète : 350 700 GTA$"],
+    caches: ["Progen est la marque du jeu qui rappelle McLaren (comme la T20, inspirée de la McLaren P1)."],
+    sources: [GB("progen-itali-gtb", "Progen Itali GTB")]
+  },
+  {
+    id: "tezeract", nom: "Tezeract", marque: "Pegassi", classe: "Super", type: "voiture",
+    places: 2, transmission: "Intégrale (AWD)", inspiration: "Lamborghini Terzo Millennio (concept), SRT Tomahawk",
+    vitesse: { kmh: 202.4, mph: 125.75 }, tour: "1:00.678", sortie: "27 mars 2018 (Southern SA Super Sport Series)",
+    histoire: { dispo: false, texte: "" },
+    online: { prix: 2825000, vendeur: "Legendary Motorsport", texte: "" },
+    ameliorations: ["100 % électrique", "Brouilleur anti-missiles", "Livrées", "Amélioration complète : 243 430 GTA$"],
+    caches: ["Inspirée du Terzo Millennio, un concept électrique de Lamborghini jamais commercialisé : dans le jeu, tu peux l'acheter."],
+    sources: [GB("pegassi-tezeract", "Pegassi Tezeract")]
+  },
+  {
+    id: "toros", nom: "Toros", marque: "Pegassi", classe: "SUV", type: "voiture",
+    places: 4, transmission: "Intégrale (AWD)", inspiration: "Lamborghini Urus, Lamborghini Aventador, Audi Q8",
+    vitesse: { kmh: 206.4, mph: 128.25 }, tour: "1:04.765", sortie: "18 décembre 2018 (Arena War)",
+    histoire: { dispo: false, texte: "" },
+    online: { prix: 498000, vendeur: "Legendary Motorsport", texte: "Peut aussi arriver comme voiture de client dans ton Auto Shop." },
+    ameliorations: ["Livrées", "Brouilleur anti-missiles", "Amélioration complète : 402 600 GTA$"],
+    caches: ["Un SUV familial à 4 places… plus rapide en pointe que l'Adder ou la Zentorno.", "« Toros » (taureaux) : encore un clin d'œil à l'emblème de Lamborghini."],
+    sources: [GB("toros", "Pegassi Toros")]
+  },
+  {
+    id: "akuma", nom: "Akuma", marque: "Dinka", classe: "Moto", type: "moto",
+    places: 2, transmission: "Propulsion (RWD)", inspiration: "Ducati Monster",
+    vitesse: { kmh: 195.1, mph: 121.25 }, tour: "0:58.892", sortie: "17 septembre 2013 (jeu de base)",
+    histoire: { dispo: true, texte: "Achetable 9 000 $, ou à voler." },
+    online: { prix: 9000, vendeur: "Southern S.A. Super Autos", texte: "" },
+    ameliorations: ["Brouilleur anti-missiles", "Amélioration complète : 111 000 GTA$"],
+    caches: ["« Akuma » signifie « démon » en japonais, un clin d'œil à la Ducati Monster qui l'a inspirée."],
+    sources: [GB("dinka-akuma", "Dinka Akuma")]
+  },
+  {
+    id: "avenger", nom: "Avenger", marque: "Mammoth", classe: "Avion (base volante)", type: "avion",
+    places: 5, transmission: "—", inspiration: "Bell Boeing V-22 Osprey",
+    vitesse: { kmh: 287.3, mph: 178.5 }, tour: "0:39.421", sortie: "12 décembre 2017 (The Doomsday Heist)",
+    histoire: { dispo: false, texte: "" },
+    online: { prix: 3450000, vendeur: "Warstock Cache & Carry", texte: "Rangé dans un hangar ou une installation (Facility). Se modifie uniquement dans leurs ateliers." },
+    ameliorations: ["Base volante : options tourelle, atelier de véhicules, atelier d'armes", "Pilote automatique", "Mode furtif (invisible sur la mini-carte)", "Décollage vertical et vol stationnaire", "Amélioration complète : 2 394 850 GTA$"],
+    caches: ["Un vrai QG volant : on peut y modifier des véhicules en plein vol.", "Le pilote automatique permet de quitter le cockpit pendant que l'avion vole seul."],
+    sources: [GB("hvy-mammoth-avenger", "Mammoth Avenger")]
+  },
+  {
+    id: "strikeforce", nom: "B-11 Strikeforce", marque: "—", classe: "Avion d'attaque", type: "avion",
+    places: 1, transmission: "—", inspiration: "Fairchild Republic A-10 Thunderbolt II « Warthog », Northrop YA-9",
+    vitesse: { kmh: 263.5, mph: 163.75 }, tour: "0:46.034", sortie: "7 août 2018 (After Hours)",
+    histoire: { dispo: false, texte: "" },
+    online: { prix: 3800000, vendeur: "Warstock Cache & Carry", texte: "Rangé dans un hangar, modifiable dans son atelier." },
+    ameliorations: ["Canon inspiré du GAU-8 Avenger", "Missiles à tête chercheuse", "Bombes", "Contre-mesures", "Blindé : environ 6 missiles pour le détruire"],
+    caches: ["Reprend l'avion A-10, surnommé « Warthog » (phacochère), célèbre pour son énorme canon rotatif."],
+    sources: [GB("b-11-strikeforce", "B-11 Strikeforce")]
+  },
+  {
+    id: "akula", nom: "Akula", marque: "—", classe: "Hélicoptère d'attaque", type: "helico",
+    places: 4, transmission: "—", inspiration: "Kamov Ka-50 « Black Shark », Boeing-Sikorsky RAH-66 Comanche",
+    vitesse: { kmh: 253.1, mph: 157.25 }, tour: "0:54.368", sortie: "12 décembre 2017 (The Doomsday Heist)",
+    histoire: { dispo: false, texte: "" },
+    online: { prix: 4500000, vendeur: "Warstock Cache & Carry", texte: "Prix réduit de 3 375 000 GTA$ après la mission du Doomsday Heist correspondante. Prix d'origine : 3 704 050 GTA$, modifié le 27 avril 2023." },
+    ameliorations: ["Mode furtif (invisible sur la mini-carte)", "Missiles à tête chercheuse", "Bombes", "Blindé", "Amélioration complète : 1 109 850 GTA$"],
+    caches: ["« Akula » signifie « requin » en russe, comme son inspiration, le Ka-50 « Black Shark »."],
+    sources: [GB("akula", "Akula")]
 
   }
 ];

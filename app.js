@@ -453,15 +453,15 @@ function filtrerVehicules() {
   const mo = document.getElementById("v-mode").value;
   const tri = document.getElementById("v-tri").value;
   let res = VEHICULES.filter(v =>
-    (!q || sansAccent([v.nom, v.marque, v.classe, v.inspiration || "", v.histoire.texte, v.online.texte, ...v.caches].join(" ")).includes(q)) &&
+    (!q || sansAccent([v.nom, v.marque, v.classe, v.inspiration || "", v.histoire.texte, v.online.texte, ...v.caches, ...v.ameliorations].join(" ")).includes(q)) &&
     (!ty || v.type === ty) && (!cl || v.classe === cl) &&
     (!mo || (mo === "histoire" ? v.histoire.dispo === true : v.online.prix != null))
   );
   const cmp = {
     nom: (a, b) => a.nom.localeCompare(b.nom),
     vitesse: (a, b) => b.vitesse.kmh - a.vitesse.kmh,
-    "prix-": (a, b) => a.online.prix - b.online.prix,
-    "prix+": (a, b) => b.online.prix - a.online.prix
+    "prix-": (a, b) => (a.online.prix ?? Infinity) - (b.online.prix ?? Infinity),
+    "prix+": (a, b) => (b.online.prix ?? -1) - (a.online.prix ?? -1)
   };
   res.sort(cmp[tri]);
   document.getElementById("v-compteur").textContent = `${res.length} véhicule${res.length > 1 ? "s" : ""}`;
