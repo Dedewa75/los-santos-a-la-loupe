@@ -33,7 +33,7 @@ function carteFiche(f) {
   </a>`;
 }
 
-const bandeauDemo = `<div class="bandeau-demo">⚠️ <strong>Version de démonstration.</strong> Les fiches marquées « EXEMPLE » sont des brouillons : elles doivent être testées en jeu et sourcées avant publication.</div>`;
+const bandeauDemo = `<div class="bandeau-demo">🔎 <strong>Version bêta.</strong> Les fiches sont vérifiées à partir de sources de référence (listées sur chaque fiche) mais pas encore testées en jeu par l'équipe.</div>`;
 
 // ---------- Ciel et skyline (dessin original) ----------
 function skylineSvg() {
@@ -219,6 +219,7 @@ function pageFiche(id) {
           <h3>Vérification</h3>
           <p>${statutHtml(f.statut)}</p>
           <p class="note">${esc(STATUTS[f.statut].aide)}</p>
+          <p class="note">🎮 Testé en jeu par l'équipe : <strong>${f.testeEnJeu ? "oui" : "pas encore"}</strong></p>
           <h3 style="margin-top:14px">Sources</h3>
           ${f.sources.length
             ? `<ul>${f.sources.map(s => `<li><a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.nom)}</a></li>`).join("")}</ul>`

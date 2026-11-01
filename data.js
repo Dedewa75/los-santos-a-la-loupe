@@ -17,79 +17,83 @@ const CATEGORIES = [
 
 // Lieux de la carte schématique (x, y = position sur le dessin, pas une vraie carte)
 const LIEUX = [
-  { id: "paleto",       nom: "Paleto Bay",          x: 150, y: 70 },
-  { id: "chiliad",      nom: "Mont Chiliad",        x: 170, y: 140 },
-  { id: "gordon",       nom: "Mont Gordon",         x: 305, y: 205 },
-  { id: "sandy",        nom: "Sandy Shores / Alamo Sea", x: 235, y: 265 },
-  { id: "foret",        nom: "Forêts du nord",      x: 95,  y: 185 },
-  { id: "vinewood",     nom: "Collines de Vinewood", x: 215, y: 415 },
-  { id: "centre",       nom: "Centre de Los Santos", x: 220, y: 480 },
-  { id: "plage",        nom: "Plage de Vespucci",   x: 140, y: 495 },
-  { id: "port",         nom: "Port de Los Santos",  x: 240, y: 560 },
-  { id: "partout",      nom: "Partout sur la carte", x: null, y: null }
+  { id: "paleto",   nom: "Paleto Bay",               x: 150, y: 70 },
+  { id: "chiliad",  nom: "Mont Chiliad",             x: 170, y: 140 },
+  { id: "raton",    nom: "Raton Canyon",             x: 95,  y: 190 },
+  { id: "gordo",    nom: "Mont Gordo",               x: 305, y: 205 },
+  { id: "sandy",    nom: "Sandy Shores / Alamo Sea", x: 235, y: 265 },
+  { id: "vinewood", nom: "Collines de Vinewood",     x: 215, y: 415 },
+  { id: "centre",   nom: "Centre de Los Santos",     x: 220, y: 480 },
+  { id: "plage",    nom: "Plage de Vespucci",        x: 140, y: 495 },
+  { id: "port",     nom: "Port de Los Santos",       x: 240, y: 560 },
+  { id: "partout",  nom: "Partout sur la carte",     x: null, y: null }
 ];
 
 // statut : "verifie" | "theorie" | "rumeur" | "a-verifier"
-// ⚠️ Toutes les fiches ci-dessous sont des EXEMPLES DE DÉMONSTRATION
-// à vérifier en jeu et à sourcer avant publication.
+// testeEnJeu : true seulement quand l'équipe a reproduit le détail elle-même
 const FICHES = [
   {
-    id: "fantome-mont-gordon",
-    exemple: true,
-    titre: "Le fantôme du Mont Gordon",
+    id: "fantome-mont-gordo",
+    titre: "Le fantôme du Mont Gordo",
     categorie: "mysteres",
-    resume: "Une silhouette fantomatique apparaîtrait la nuit au sommet du Mont Gordon.",
-    explication: "Selon de nombreux joueurs, une apparition féminine se montre à une heure précise de la nuit sur le Mont Gordon, avec une inscription au sol à proximité. Le fantôme disparaît quand on s'approche trop. C'est l'un des mystères les plus partagés de la communauté.",
+    resume: "Chaque nuit, une silhouette fantomatique flotte au sommet du Mont Gordo.",
+    explication: "Entre 23 h et minuit (heure du jeu), une apparition féminine se montre sur le pic est du Mont Gordo. Sous elle, le mot « JOCK » est écrit en rouge. Si tu t'approches trop, elle disparaît, puis revient quand tu recules. Un article de journal consultable sur l'internet du jeu permet de l'identifier : il s'agirait de Jolene Cranley-Evans, l'épouse du politicien Jock Cranley.",
     etapes: [
-      "Rends-toi au sommet du Mont Gordon (nord-est de la carte).",
-      "Attends la nuit, entre 23 h et minuit (heure du jeu).",
-      "Observe les rochers depuis une certaine distance, sans foncer dessus."
+      "Rends-toi sur le pic est du Mont Gordo (nord-est de la carte).",
+      "Attends entre 23 h et minuit (heure du jeu).",
+      "Garde tes distances : le fantôme s'efface si tu t'approches trop."
     ],
-    lieu: "gordon",
-    moment: "Nuit, entre 23 h et minuit (heure du jeu) — à confirmer",
+    lieu: "gordo",
+    moment: "Chaque nuit, entre 23 h et minuit (heure du jeu)",
     personnage: "Tous",
     mission: "Aucune (exploration libre)",
-    difficulte: "Moyen",
-    statut: "a-verifier",
+    difficulte: "Facile",
+    statut: "verifie",
+    testeEnJeu: false,
     spoiler: false,
     populaire: true,
-    date: "2026-10-28",
-    sources: []
+    date: "2026-11-01",
+    sources: [
+      { nom: "GTA Wiki — Secrets and Easter Eggs in GTA V", url: "https://gta.wiki/w/Secrets_and_Easter_Eggs_in_GTA_V" },
+      { nom: "Game Informer — How to find the ghost in GTA V (2013)", url: "https://www.gameinformer.com/b/features/archive/2013/09/25/how-to-find-the-ghost-in-grand-theft-auto-v.aspx" }
+    ]
   },
   {
     id: "ovni-chiliad",
-    exemple: true,
     titre: "L'OVNI au-dessus du Mont Chiliad",
     categorie: "mysteres",
-    resume: "Une soucoupe volante qui ne se montrerait qu'aux joueurs ayant tout terminé.",
-    explication: "D'après la communauté, un OVNI apparaît au-dessus du sommet du Mont Chiliad, mais seulement sous des conditions très strictes : progression complète du mode histoire, heure précise et météo pluvieuse.",
+    resume: "Une soucoupe qui ne se montre qu'aux joueurs ayant terminé le jeu à 100 %.",
+    explication: "Une fois la progression à 100 % atteinte, un OVNI apparaît au-dessus du sommet du Mont Chiliad, mais seulement à 3 h du matin (heure du jeu) et par temps d'orage. La fresque de la station du téléphérique et une inscription près du panneau d'information au sommet seraient des indices qui annonçaient cette rencontre.",
     etapes: [
       "Atteins 100 % de progression en mode histoire.",
-      "Va au sommet du Mont Chiliad.",
-      "Attends 3 h du matin (heure du jeu) par temps de pluie, puis regarde vers le ciel."
+      "Monte au sommet du Mont Chiliad.",
+      "Attends 3 h du matin (heure du jeu) par temps d'orage et lève les yeux."
     ],
     lieu: "chiliad",
-    moment: "Vers 3 h du matin, sous la pluie, après 100 % — à confirmer",
+    moment: "3 h du matin, par temps d'orage, après 100 %",
     personnage: "Tous",
-    mission: "Après la fin de l'histoire",
+    mission: "Après 100 % de progression",
     difficulte: "Difficile",
-    statut: "a-verifier",
+    statut: "verifie",
+    testeEnJeu: false,
     spoiler: true,
     populaire: true,
-    date: "2026-10-27",
-    sources: []
+    date: "2026-11-01",
+    sources: [
+      { nom: "GTA Wiki — Secrets and Easter Eggs in GTA V", url: "https://gta.wiki/w/Secrets_and_Easter_Eggs_in_GTA_V" },
+      { nom: "GTA Wiki — Mount Chiliad", url: "https://gta.wiki/w/Mount_Chiliad_(HD_Universe)" }
+    ]
   },
   {
     id: "fresque-chiliad",
-    exemple: true,
     titre: "La fresque énigmatique du Mont Chiliad",
     categorie: "mysteres",
-    resume: "Une peinture murale mystérieuse qui alimente les théories depuis la sortie du jeu.",
-    explication: "Une fresque près du sommet du Mont Chiliad montrerait plusieurs symboles (un OVNI, un œuf, une silhouette…). Beaucoup de joueurs y voient un indice vers un secret caché. Aucune explication officielle n'a été donnée : son sens exact reste une théorie.",
+    resume: "La peinture murale qui alimente les théories des joueurs depuis 2013.",
+    explication: "À la station du téléphérique du Mont Chiliad, une fresque montre notamment un œuf, un OVNI et une silhouette équipée d'un jetpack. Rockstar n'en a jamais donné d'explication officielle. Une lecture répandue y voit un indice vers les OVNI du jeu. En 2025, un vidéaste a proposé une interprétation : la fresque inviterait simplement à monter très haut pour trouver les OVNI. C'est une théorie séduisante, mais pas une confirmation.",
     etapes: [
-      "Monte au sommet du Mont Chiliad (le téléphérique facilite l'accès).",
-      "Cherche la fresque près de la station d'arrivée.",
-      "Observe les symboles et compare avec les théories de la communauté."
+      "Prends le téléphérique jusqu'au sommet du Mont Chiliad.",
+      "Cherche la fresque à la station d'arrivée.",
+      "Compare les symboles avec la fiche « L'OVNI au-dessus du Mont Chiliad »."
     ],
     lieu: "chiliad",
     moment: "À tout moment",
@@ -97,20 +101,23 @@ const FICHES = [
     mission: "Aucune",
     difficulte: "Facile",
     statut: "theorie",
+    testeEnJeu: false,
     spoiler: false,
     populaire: true,
-    date: "2026-10-25",
-    sources: []
+    date: "2026-11-01",
+    sources: [
+      { nom: "GTA Wiki — Secrets and Easter Eggs in GTA V", url: "https://gta.wiki/w/Secrets_and_Easter_Eggs_in_GTA_V" },
+      { nom: "OpenCritic — interprétation de la fresque (2025)", url: "https://opencritic.com/news/19747/after-12-years-one-of-grand-theft-autos-biggest-mysteries-has-been-solved" }
+    ]
   },
   {
     id: "rumeur-jetpack",
-    exemple: true,
     titre: "Un jetpack caché en mode histoire ?",
     categorie: "mysteres",
     resume: "La rumeur la plus célèbre liée à la fresque du Mont Chiliad.",
-    explication: "Pendant des années, des joueurs ont affirmé qu'un jetpack pouvait être débloqué en solo en résolvant le mystère du Mont Chiliad. À ce jour, nous n'avons trouvé aucune preuve fiable de cette affirmation. Nous la classons donc comme rumeur.",
+    explication: "Pendant des années, des joueurs ont cru qu'un jetpack pouvait être débloqué en solo en résolvant le mystère du Mont Chiliad. En 2015, des joueurs PC ont pu fouiller des zones habituellement fermées du jeu et n'y ont trouvé aucun jetpack. Aucune preuve fiable n'a été apportée depuis : on classe donc cette affirmation comme rumeur.",
     etapes: [
-      "Aucune méthode confirmée.",
+      "Aucune méthode n'a jamais été confirmée.",
       "Méfie-toi des vidéos qui promettent une « méthode secrète » sans preuve."
     ],
     lieu: "chiliad",
@@ -119,85 +126,95 @@ const FICHES = [
     mission: "—",
     difficulte: "Difficile",
     statut: "rumeur",
+    testeEnJeu: false,
     spoiler: false,
     populaire: false,
-    date: "2026-10-24",
-    sources: []
+    date: "2026-11-01",
+    sources: [
+      { nom: "GamesRadar — The great GTA 5 UFO mystery is over (2015)", url: "https://gamesradar.com/gta-5-jetpack-ufo-mystery" }
+    ]
   },
   {
     id: "plantes-peyotl",
-    exemple: true,
     titre: "Les plantes qui te transforment en animal",
     categorie: "faune",
-    resume: "Des plantes cachées permettent d'incarner temporairement un animal.",
-    explication: "Dans les versions remasterisées du jeu, des plantes dissimulées un peu partout permettraient, une fois consommées, de jouer brièvement un animal : chien, oiseau, poisson… Un des détails les plus fun à chasser.",
+    resume: "27 plantes cachées permettent d'incarner un animal… et même Bigfoot.",
+    explication: "Dans la version améliorée du jeu (PS4, Xbox One, PC et suivantes), 27 plantes de peyotl sont cachées dans des coins isolés. En consommer une te fait halluciner : tu joues brièvement un animal (chien, oiseau, cochon…). Une plante dorée spéciale existe aussi : elle permet de jouer Bigfoot, mais seulement après le 100 %, la mission « The Last One » et la collecte de toutes les autres plantes.",
     etapes: [
-      "Explore les zones sauvages, plages et fonds marins.",
+      "Explore les zones sauvages, les plages et les fonds marins.",
       "Repère une petite plante isolée et interagis avec elle.",
-      "Profite de la séquence en tant qu'animal."
+      "Pour la plante dorée : Raton Canyon, le mardi entre 5 h 30 et 8 h, par temps de neige ou de brouillard."
     ],
     lieu: "partout",
-    moment: "Selon la plante (certaines dépendent du jour ou de l'heure) — à confirmer",
+    moment: "Plantes normales : à tout moment · Plante dorée : mardi 5 h 30–8 h",
     personnage: "Tous",
     mission: "Aucune",
     difficulte: "Moyen",
-    statut: "a-verifier",
+    statut: "verifie",
+    testeEnJeu: false,
     spoiler: false,
     populaire: true,
-    date: "2026-10-30",
-    sources: []
+    date: "2026-11-01",
+    sources: [
+      { nom: "Gamer Guides — Peyote Plant", url: "https://www.gamerguides.com/grand-theft-auto-v/guide/collectibles/peyote-plant" },
+      { nom: "GTA Myths Wiki — Peyote", url: "https://gta-myths.fandom.com/wiki/Peyote" }
+    ]
   },
   {
     id: "fragments-lettre",
-    exemple: true,
-    titre: "Les fragments de lettre et l'histoire d'un meurtre",
-    categorie: "references",
-    resume: "Des morceaux de lettre dispersés racontent une sombre affaire criminelle.",
-    explication: "Des fragments de lettre sont cachés dans tout Los Santos et Blaine County. Une fois réunis, ils révèleraient l'histoire d'un meurtre, que certains joueurs rapprochent d'une célèbre affaire criminelle américaine non résolue. Le lien avec cette affaire reste une interprétation.",
+    titre: "Les 50 fragments de lettre et le meurtre de Leonora Johnson",
+    categorie: "mysteres",
+    resume: "Des morceaux de papier dispersés forment une confession de meurtre.",
+    explication: "50 fragments de lettre sont cachés dans Los Santos et Blaine County. Michael, Franklin et Trevor peuvent tous en ramasser. Une fois réunis, ils forment une lettre de confession datée de 1975, qui révèle le coupable du meurtre de l'actrice Leonora Johnson. Seul Franklin peut ensuite confronter le meurtrier lors de la mission « A Starlet in Vinewood ».",
     etapes: [
-      "Cherche les fragments (petits papiers) dans les lieux insolites.",
-      "Collecte-les tous pour débloquer la suite de l'histoire.",
-      "Suis la piste finale révélée par la lettre complète."
+      "Ramasse les fragments : ils bruissent dans le vent quand tu es proche.",
+      "Avec Franklin, Chop peut t'aider à les repérer.",
+      "Une fois les 50 réunis, lance « A Starlet in Vinewood » avec Franklin."
     ],
     lieu: "partout",
     moment: "À tout moment",
-    personnage: "À vérifier",
-    mission: "Collection libre",
+    personnage: "Franklin (confrontation finale)",
+    mission: "A Starlet in Vinewood",
     difficulte: "Difficile",
-    statut: "a-verifier",
+    statut: "verifie",
+    testeEnJeu: false,
     spoiler: true,
     populaire: false,
-    date: "2026-10-29",
-    sources: []
+    date: "2026-11-01",
+    sources: [
+      { nom: "Grand Theft Wiki — Letter Scraps", url: "https://www.grandtheftwiki.com/Letter_Scraps" }
+    ]
   },
   {
-    id: "chasse-forestiere",
-    exemple: true,
-    titre: "La dernière chasse de Trevor",
+    id: "traque-sasquatch",
+    titre: "La traque du sasquatch",
     categorie: "missions",
-    resume: "Une mission très particulière qui ne se débloque qu'à la toute fin.",
-    explication: "Une mission spéciale serait accessible uniquement après avoir atteint 100 %. Elle emmène Trevor dans les forêts du nord pour une traque inhabituelle, clin d'œil à une célèbre créature de légende.",
+    resume: "La toute dernière mission du jeu, réservée aux joueurs à 100 %.",
+    explication: "Une fois les 100 % atteints, Franklin peut rencontrer un chasseur à Raton Canyon qui traque un sasquatch. La poursuite à travers la forêt réserve une révélation inattendue sur la vraie nature de la « créature ». C'est la mission « The Last One », un clin d'œil aux légendes de Bigfoot.",
     etapes: [
       "Termine le jeu à 100 %.",
-      "Avec Trevor, cherche le nouveau marqueur dans les forêts du nord.",
-      "Suis les traces jusqu'au bout."
+      "Avec Franklin, rends-toi au nouveau marqueur à Raton Canyon.",
+      "Suis la piste jusqu'au bout."
     ],
-    lieu: "foret",
+    lieu: "raton",
     moment: "Après 100 %",
-    personnage: "Trevor",
-    mission: "Mission post-100 %",
+    personnage: "Franklin",
+    mission: "The Last One",
     difficulte: "Difficile",
-    statut: "a-verifier",
+    statut: "verifie",
+    testeEnJeu: false,
     spoiler: true,
     populaire: false,
-    date: "2026-10-31",
-    sources: []
+    date: "2026-11-01",
+    sources: [
+      { nom: "GTABase — The Last One", url: "https://gtabase.com/grand-theft-auto-v/strangers/the-last-one" }
+    ]
   }
 ];
 
 const STATUTS = {
-  "verifie":    { nom: "Vérifié",     classe: "ok",    aide: "Testé en jeu et confirmé par des sources fiables." },
-  "theorie":    { nom: "Théorie",     classe: "theo",  aide: "Interprétation plausible, mais rien d'officiel." },
-  "rumeur":     { nom: "Rumeur",      classe: "rum",   aide: "Affirmation sans preuve fiable à ce jour." },
-  "a-verifier": { nom: "À vérifier",  classe: "wait",  aide: "Exemple en attente de test en jeu et de sources." }
+  "verifie":    { nom: "Vérifié",    classe: "ok",   aide: "Confirmé par des sources de référence." },
+  "theorie":    { nom: "Théorie",    classe: "theo", aide: "Interprétation plausible, mais rien d'officiel." },
+  "rumeur":     { nom: "Rumeur",     classe: "rum",  aide: "Affirmation sans preuve fiable à ce jour." },
+  "a-verifier": { nom: "À vérifier", classe: "wait", aide: "En attente de sources fiables." }
 };
