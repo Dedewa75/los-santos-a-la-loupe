@@ -1,6 +1,6 @@
 // Service worker : rend l'appli installable et garde les pages de base en cache.
-// Les données (Supabase) ne sont JAMAIS mises en cache : toujours en direct.
-const CACHE = "lsl-v1";
+// Les données (Firebase) ne sont JAMAIS mises en cache : toujours en direct.
+const CACHE = "lsl-v2";
 const BASE = ["communaute.html", "communaute.css", "communaute.js", "communaute-config.js", "style.css", "manifest.webmanifest", "icons/icon-192.png"];
 
 self.addEventListener("install", e => {

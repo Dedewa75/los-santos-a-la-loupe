@@ -1,20 +1,44 @@
 // =====================================================
 // Appli communautaire « Los Santos à la loupe »
 // Inscription 16+, chat par salons en temps réel, recherche d'activité
-// (annonces validées), profil, espace admin. Données : Supabase.
+// (annonces validées), profil, espace modération.
+// Données : Firebase (Authentication + Cloud Firestore, hébergé en UE).
+// La sécurité est assurée côté serveur par firebase/firestore.rules.
 // =====================================================
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword,
+  signOut, sendEmailVerification, reload
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
+  getFirestore, doc, getDoc, collection, query, where, orderBy, limit, getDocs,
+  onSnapshot, writeBatch, updateDoc, deleteDoc, addDoc, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-const CFG = window.LSL_CONFIG || {};
+const CFG = (window.LSL_CONFIG || {}).FIREBASE || null;
 const PLATEFORMES = ["PS5", "PS4", "Xbox Series", "Xbox One", "PC"];
 const ACTIVITES = ["Braquage Cayo Perico", "Braquage du Casino", "Doomsday Heist", "Braquages classiques", "Courses", "Business / ventes", "Missions de contact", "Mode Adversaire", "Exploration / secrets", "Autre"];
+const SALONS = [
+  { id: "general", nom: "💬 Général", description: "Discussions libres sur GTA V et GTA Online" },
+  { id: "braquages", nom: "💰 Braquages", description: "Préparer et réussir les braquages" },
+  { id: "courses", nom: "🏁 Courses & véhicules", description: "Voitures, courses, tuning" },
+  { id: "entraide", nom: "🆘 Entraide", description: "Tu bloques sur une mission ? Demande ici" },
+  { id: "secrets", nom: "🔍 Secrets & mystères", description: "Easter eggs, théories et découvertes" },
+  { id: "hors-sujet", nom: "🎲 Hors-sujet", description: "Tout le reste (dans le respect du règlement)" }
+];
 const PSEUDO_RE = /^[A-Za-z0-9_-]{3,20}$/;
 
 const $ = s => document.querySelector(s);
 const app = $("#c-app");
 const esc = t => String(t ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-const heure = d => new Date(d).toLocaleString("fr-BE", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+const date = ts => (ts && typeof ts.toDate === "function") ? ts.toDate() : new Date();
+const heure = ts => date(ts).toLocaleString("fr-BE", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+const parDate = (a, b) => date(b.creeLe) - date(a.creeLe);
+const lignes = snap => snap.docs.map(d => ({ id: d.id, ...d.data() }));
 
-let sb = null, session = null, profil = null, salons = [], salonActif = null, canal = null, onglet = "chat";
+let auth = null, db = null, utilisateur = null, profil = null;
+let salonActif = SALONS[0], arretChat = null, onglet = "chat", inscriptionEnCours = false;
+let dernierEnvoi = 0, derniereAnnonceLocale = 0;
 
 // ---------- Petits outils ----------
 function toast(texte, erreur = false) {
@@ -27,15 +51,21 @@ function toast(texte, erreur = false) {
 }
 
 function msgErreur(e) {
-  const m = (e && (e.message || e.error_description || String(e))) || "Erreur inconnue";
-  if (/Database error saving new user/i.test(m)) return "Inscription impossible : ce pseudo est peut-être déjà pris. Essaie-en un autre.";
-  if (/already registered|already been registered/i.test(m)) return "Cette adresse e-mail a déjà un compte. Connecte-toi.";
-  if (/Invalid login credentials/i.test(m)) return "E-mail ou mot de passe incorrect.";
-  if (/Email not confirmed/i.test(m)) return "Confirme d'abord ton adresse e-mail (clique sur le lien reçu par mail).";
-  if (/row-level security|violates row-level/i.test(m)) return "Action non autorisée.";
-  if (/rate limit|too many/i.test(m)) return "Trop de tentatives. Réessaie dans quelques minutes.";
-  if (/Failed to fetch|NetworkError/i.test(m)) return "Pas de connexion internet ou serveur injoignable.";
-  return m;
+  const code = (e && e.code) || "";
+  const textes = {
+    "auth/email-already-in-use": "Cette adresse e-mail a déjà un compte. Connecte-toi.",
+    "auth/invalid-email": "Adresse e-mail invalide.",
+    "auth/weak-password": "Mot de passe trop faible (8 caractères minimum).",
+    "auth/invalid-credential": "E-mail ou mot de passe incorrect.",
+    "auth/wrong-password": "E-mail ou mot de passe incorrect.",
+    "auth/user-not-found": "E-mail ou mot de passe incorrect.",
+    "auth/too-many-requests": "Trop de tentatives. Réessaie dans quelques minutes.",
+    "auth/network-request-failed": "Pas de connexion internet ou serveur injoignable.",
+    "permission-denied": "Action refusée (non autorisée, trop rapide ou contenu invalide).",
+    "failed-precondition": "Le serveur se prépare (index en cours de création). Réessaie dans quelques minutes.",
+    "unavailable": "Serveur momentanément injoignable. Réessaie dans un instant."
+  };
+  return textes[code] || (e && e.message) || "Erreur inconnue.";
 }
 
 function centre(html) {
@@ -44,8 +74,8 @@ function centre(html) {
 }
 
 // ---------- Démarrage ----------
-async function init() {
-  if (!CFG.SUPABASE_URL || !CFG.SUPABASE_ANON_KEY) {
+function init() {
+  if (!CFG || !CFG.apiKey || !CFG.projectId) {
     centre(`
       <div class="bloc c-carte">
         <h1>Communauté</h1>
@@ -55,49 +85,83 @@ async function init() {
       </div>`);
     return;
   }
-  if (!window.supabase || !window.supabase.createClient) {
-    centre(`<div class="bloc c-carte"><h2>Impossible de charger l'appli</h2><p>Vérifie ta connexion internet puis recharge la page.</p></div>`);
-    return;
-  }
-  sb = window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON_KEY);
-  const { data } = await sb.auth.getSession();
-  session = data.session;
-  sb.auth.onAuthStateChange((_evt, s) => {
-    const avant = session?.user?.id || null;
-    session = s;
-    if ((s?.user?.id || null) !== avant) demarrer();
+  const appFb = initializeApp(CFG);
+  auth = getAuth(appFb);
+  auth.languageCode = "fr";
+  db = getFirestore(appFb);
+  let demarre = false;
+  onAuthStateChanged(auth, u => {
+    if (inscriptionEnCours) return;
+    // n'agit que si l'utilisateur connecté change vraiment (évite d'effacer un message d'erreur)
+    if (demarre && (u?.uid || null) === (utilisateur?.uid || null)) return;
+    demarre = true;
+    demarrer(u);
   });
-  demarrer();
 }
 
-async function demarrer() {
+async function demarrer(u) {
   quitterSalon();
   $("#c-toast").hidden = true;
   $("#c-qui").textContent = "";
-  if (!session) { onglet = "chat"; salonActif = null; profil = null; ecranConnexion(); return; }
-  const { data, error } = await sb.from("profils").select("*").eq("id", session.user.id).maybeSingle();
-  if (error || !data) {
-    centre(`<div class="bloc c-carte"><h2>Profil introuvable</h2><p>${esc(error ? msgErreur(error) : "Ton profil n'a pas été créé.")}</p><button class="btn btn-neon" id="c-deco">Se déconnecter</button></div>`);
-    $("#c-deco").onclick = () => sb.auth.signOut();
-    return;
-  }
-  profil = data;
+  utilisateur = u || null;
+  profil = null;
+  if (!u) { onglet = "chat"; salonActif = SALONS[0]; ecranConnexion(); return; }
+  if (!u.emailVerified) { ecranVerification(u); return; }
+  let snap;
+  try { snap = await getDoc(doc(db, "profils", u.uid)); }
+  catch (e) { centre(`<div class="bloc c-carte"><h2>Erreur</h2><p>${esc(msgErreur(e))}</p><button class="btn btn-neon" id="c-deco">Se déconnecter</button></div>`); $("#c-deco").onclick = () => signOut(auth); return; }
+  if (!snap.exists()) { ecranFinaliserProfil(u); return; }
+  profil = { id: u.uid, ...snap.data() };
   if (profil.banni) {
     centre(`<div class="bloc c-carte"><h2>Compte suspendu</h2><p>Ton compte a été suspendu par la modération pour non-respect du règlement.</p><button class="btn btn-neon" id="c-deco">Se déconnecter</button></div>`);
-    $("#c-deco").onclick = () => sb.auth.signOut();
+    $("#c-deco").onclick = () => signOut(auth);
     return;
   }
   $("#c-qui").textContent = profil.pseudo;
-  const { data: s } = await sb.from("salons").select("*").order("ordre");
-  salons = s || [];
-  salonActif = salonActif && salons.find(x => x.id === salonActif.id) ? salonActif : salons[0] || null;
   afficherOnglets();
   ouvrir(onglet);
 }
 
+// ---------- Création du profil (pseudo réservé en même temps) ----------
+async function creerProfil(u, pseudo, plateforme) {
+  const pseudoMin = pseudo.toLowerCase();
+  const lot = writeBatch(db);
+  lot.set(doc(db, "profils", u.uid), {
+    pseudo, pseudoMin, plateforme, ageConfirme: true, reglementAccepte: true, role: "membre", banni: false,
+    creeLe: serverTimestamp(), dernierMessage: serverTimestamp(), derniereAnnonce: serverTimestamp()
+  });
+  lot.set(doc(db, "pseudos", pseudoMin), { uid: u.uid });
+  await lot.commit();
+}
+
+async function pseudoLibre(pseudo) {
+  const s = await getDoc(doc(db, "pseudos", pseudo.toLowerCase()));
+  return !s.exists();
+}
+
+function champsProfil() {
+  const optPf = ['<option value="Non précisé">Plateforme (facultatif)</option>', ...PLATEFORMES.map(p => `<option>${p}</option>`)].join("");
+  return `
+    <label>Pseudo<input name="pseudo" required maxlength="20" autocomplete="nickname" placeholder="3 à 20 caractères : lettres, chiffres, _ ou -"></label>
+    <label>Plateforme<select name="plateforme">${optPf}</select></label>`;
+}
+
+function validerProfil(f, pbs) {
+  if (!PSEUDO_RE.test(f.pseudo.value.trim())) pbs.push("pseudo de 3 à 20 caractères (lettres sans accent, chiffres, _ ou -)");
+  if (!f.age.checked) pbs.push("confirmer avoir 16 ans ou plus");
+  if (!f.regles.checked) pbs.push("accepter le règlement");
+}
+
+const casesAcceptation = `
+  <label class="case"><input type="checkbox" name="age"> J'ai 16 ans ou plus.</label>
+  <label class="case"><input type="checkbox" name="regles"> J'accepte le <a href="#" class="lien-regles">règlement de la communauté</a> et les <a href="index.html#/mentions" target="_blank">mentions légales</a>.</label>`;
+
+function brancherReglement() {
+  app.querySelectorAll(".lien-regles").forEach(a => a.onclick = e => { e.preventDefault(); $("#c-reglement").showModal(); });
+}
+
 // ---------- Connexion / inscription ----------
 function ecranConnexion(mode = "connexion") {
-  const optPf = ['<option value="Non précisé">Plateforme (facultatif)</option>', ...PLATEFORMES.map(p => `<option>${p}</option>`)].join("");
   centre(`
     <div class="bloc c-carte">
       <h1>Communauté</h1>
@@ -114,12 +178,10 @@ function ecranConnexion(mode = "connexion") {
         <button class="btn btn-degrade" type="submit">Se connecter</button>
       </form>` : `
       <form class="form" id="f-inscription" novalidate>
-        <label>Pseudo<input name="pseudo" required maxlength="20" autocomplete="nickname" placeholder="3 à 20 caractères : lettres, chiffres, _ ou -"></label>
-        <label>Plateforme<select name="plateforme">${optPf}</select></label>
+        ${champsProfil()}
         <label>E-mail<input name="email" type="email" required autocomplete="email"></label>
         <label>Mot de passe<input name="mdp" type="password" required minlength="8" autocomplete="new-password" placeholder="8 caractères minimum"></label>
-        <label class="case"><input type="checkbox" name="age"> J'ai 16 ans ou plus.</label>
-        <label class="case"><input type="checkbox" name="regles"> J'accepte le <a href="#" id="lien-regles">règlement de la communauté</a> et les <a href="index.html#/mentions" target="_blank">mentions légales</a>.</label>
+        ${casesAcceptation}
         <div id="f-msg"></div>
         <button class="btn btn-degrade" type="submit">Créer mon compte</button>
       </form>`}
@@ -132,43 +194,100 @@ function ecranConnexion(mode = "connexion") {
       e.preventDefault();
       const f = e.target, b = f.querySelector("button[type=submit]");
       b.disabled = true; msg("");
-      const { error } = await sb.auth.signInWithPassword({ email: f.email.value.trim(), password: f.mdp.value });
+      try { await signInWithEmailAndPassword(auth, f.email.value.trim(), f.mdp.value); }
+      catch (err) { msg(`<p class="erreur">${esc(msgErreur(err))}</p>`); }
       b.disabled = false;
-      if (error) msg(`<p class="erreur">${esc(msgErreur(error))}</p>`);
     };
-  } else {
-    $("#lien-regles").onclick = e => { e.preventDefault(); $("#c-reglement").showModal(); };
-    $("#f-inscription").onsubmit = async e => {
-      e.preventDefault();
-      const f = e.target, b = f.querySelector("button[type=submit]");
-      const pseudo = f.pseudo.value.trim();
-      const pbs = [];
-      if (!PSEUDO_RE.test(pseudo)) pbs.push("pseudo de 3 à 20 caractères (lettres sans accent, chiffres, _ ou -)");
-      if (!/^\S+@\S+\.\S+$/.test(f.email.value.trim())) pbs.push("e-mail valide");
-      if (f.mdp.value.length < 8) pbs.push("mot de passe de 8 caractères minimum");
-      if (!f.age.checked) pbs.push("confirmer avoir 16 ans ou plus");
-      if (!f.regles.checked) pbs.push("accepter le règlement");
-      if (pbs.length) { msg(`<p class="erreur">Il faut : ${pbs.join(", ")}.</p>`); return; }
-      b.disabled = true; msg("");
-      const { data, error } = await sb.auth.signUp({
-        email: f.email.value.trim(),
-        password: f.mdp.value,
-        options: {
-          emailRedirectTo: location.origin + location.pathname,
-          data: { pseudo, plateforme: f.plateforme.value, age_confirme: true, reglement_accepte: true }
-        }
-      });
-      b.disabled = false;
-      if (error) { msg(`<p class="erreur">${esc(msgErreur(error))}</p>`); return; }
-      if (!data.session) {
-        centre(`<div class="bloc c-carte"><h2>📧 Vérifie ta boîte mail</h2><p>Ton compte <strong>${esc(pseudo)}</strong> est créé. Clique sur le lien reçu par e-mail pour l'activer (pense à regarder dans les spams), puis reviens te connecter.</p><button class="btn btn-neon" id="c-retour">Aller à la connexion</button></div>`);
-        $("#c-retour").onclick = () => ecranConnexion("connexion");
-      }
-    };
+    return;
   }
+
+  brancherReglement();
+  $("#f-inscription").onsubmit = async e => {
+    e.preventDefault();
+    const f = e.target, b = f.querySelector("button[type=submit]");
+    const pseudo = f.pseudo.value.trim(), email = f.email.value.trim();
+    const pbs = [];
+    validerProfil(f, pbs);
+    if (!/^\S+@\S+\.\S+$/.test(email)) pbs.push("e-mail valide");
+    if (f.mdp.value.length < 8) pbs.push("mot de passe de 8 caractères minimum");
+    if (pbs.length) { msg(`<p class="erreur">Il faut : ${pbs.join(", ")}.</p>`); return; }
+    b.disabled = true; msg("");
+    inscriptionEnCours = true;
+    let cred = null;
+    try {
+      if (!(await pseudoLibre(pseudo))) throw { code: "pseudo-pris" };
+      cred = await createUserWithEmailAndPassword(auth, email, f.mdp.value);
+      try { await creerProfil(cred.user, pseudo, f.plateforme.value); }
+      catch (err) { await cred.user.delete().catch(() => {}); throw { code: "pseudo-pris" }; }
+      await sendEmailVerification(cred.user, { url: location.origin + location.pathname }).catch(() => {});
+      inscriptionEnCours = false;
+      demarrer(auth.currentUser);
+    } catch (err) {
+      inscriptionEnCours = false;
+      b.disabled = false;
+      msg(`<p class="erreur">${esc(err.code === "pseudo-pris" ? "Ce pseudo est déjà pris. Choisis-en un autre." : msgErreur(err))}</p>`);
+      if (!auth.currentUser) return;
+      demarrer(auth.currentUser);
+    }
+  };
 }
 
-// ---------- Navigation de l'appli ----------
+function ecranVerification(u) {
+  centre(`
+    <div class="bloc c-carte">
+      <h2>📧 Vérifie ta boîte mail</h2>
+      <p>Un lien de confirmation a été envoyé à <strong>${esc(u.email)}</strong>. Clique dessus (pense à regarder dans les spams), puis reviens ici.</p>
+      <div class="boutons">
+        <button class="btn btn-degrade" id="v-ok">J'ai confirmé mon e-mail</button>
+        <button class="btn btn-neon" id="v-renvoi">Renvoyer l'e-mail</button>
+      </div>
+      <div id="v-msg"></div>
+      <p><button class="btn-lien" id="c-deco">Se déconnecter</button></p>
+    </div>`);
+  $("#c-deco").onclick = () => signOut(auth);
+  $("#v-renvoi").onclick = async () => {
+    try { await sendEmailVerification(u, { url: location.origin + location.pathname }); $("#v-msg").innerHTML = `<p class="succes">E-mail renvoyé.</p>`; }
+    catch (err) { $("#v-msg").innerHTML = `<p class="erreur">${esc(msgErreur(err))}</p>`; }
+  };
+  $("#v-ok").onclick = async () => {
+    await reload(u).catch(() => {});
+    const cu = auth.currentUser;
+    if (cu && cu.emailVerified) { await cu.getIdToken(true).catch(() => {}); demarrer(cu); }
+    else $("#v-msg").innerHTML = `<p class="erreur">Ton e-mail n'est pas encore confirmé. Clique sur le lien reçu par mail, puis réessaie.</p>`;
+  };
+}
+
+function ecranFinaliserProfil(u) {
+  centre(`
+    <div class="bloc c-carte">
+      <h2>Finalise ton profil</h2>
+      <p>Il manque ton pseudo pour accéder à la communauté.</p>
+      <form class="form" id="f-profil-init" novalidate>
+        ${champsProfil()}
+        ${casesAcceptation}
+        <div id="f-msg"></div>
+        <button class="btn btn-degrade" type="submit">Valider</button>
+      </form>
+      <p><button class="btn-lien" id="c-deco">Se déconnecter</button></p>
+    </div>`);
+  brancherReglement();
+  $("#c-deco").onclick = () => signOut(auth);
+  $("#f-profil-init").onsubmit = async e => {
+    e.preventDefault();
+    const f = e.target, pbs = [];
+    validerProfil(f, pbs);
+    if (pbs.length) { $("#f-msg").innerHTML = `<p class="erreur">Il faut : ${pbs.join(", ")}.</p>`; return; }
+    try {
+      if (!(await pseudoLibre(f.pseudo.value.trim()))) throw { code: "pseudo-pris" };
+      await creerProfil(u, f.pseudo.value.trim(), f.plateforme.value);
+      demarrer(u);
+    } catch (err) {
+      $("#f-msg").innerHTML = `<p class="erreur">${esc(err.code === "pseudo-pris" || err.code === "permission-denied" ? "Ce pseudo est déjà pris. Choisis-en un autre." : msgErreur(err))}</p>`;
+    }
+  };
+}
+
+// ---------- Navigation ----------
 function afficherOnglets() {
   const items = [["chat", "💬", "Chat"], ["activites", "🎯", "Activités"], ["profil", "👤", "Profil"]];
   if (profil.role === "admin") items.push(["admin", "🛡️", "Modération"]);
@@ -182,23 +301,22 @@ function ouvrir(k) {
   if (k === "admin" && profil.role !== "admin") k = "chat";
   onglet = k;
   $("#c-onglets").querySelectorAll("button").forEach(b => b.classList.toggle("actif", b.dataset.onglet === k));
-  if (k !== "chat") quitterSalon();
+  quitterSalon();
   ({ chat: vueChat, activites: vueActivites, profil: vueProfil, admin: vueAdmin })[k]();
 }
 
 // ---------- CHAT ----------
 function quitterSalon() {
-  if (canal && sb) { sb.removeChannel(canal); }
-  canal = null;
+  if (arretChat) { arretChat(); arretChat = null; }
 }
 
 function vueChat(prefill = "") {
   app.innerHTML = `
     <div class="c-chat">
       <div class="c-salons" role="tablist" aria-label="Salons">
-        ${salons.map(s => `<button class="c-salon ${salonActif && s.id === salonActif.id ? "actif" : ""}" data-id="${s.id}" title="${esc(s.description)}">${esc(s.nom)}</button>`).join("")}
+        ${SALONS.map(s => `<button class="c-salon ${s.id === salonActif.id ? "actif" : ""}" data-id="${s.id}" title="${esc(s.description)}">${esc(s.nom)}</button>`).join("")}
       </div>
-      <p class="note c-salon-desc">${esc(salonActif?.description || "")}</p>
+      <p class="note c-salon-desc">${esc(salonActif.description)}</p>
       <div class="c-fil" id="c-fil"><p class="note">Chargement des messages…</p></div>
       <form class="c-envoi" id="c-envoi">
         <input name="texte" maxlength="1000" autocomplete="off" placeholder="Écris un message (respecte le règlement)" aria-label="Message">
@@ -206,7 +324,8 @@ function vueChat(prefill = "") {
       </form>
     </div>`;
   app.querySelectorAll(".c-salon").forEach(b => b.onclick = () => {
-    salonActif = salons.find(s => String(s.id) === b.dataset.id);
+    salonActif = SALONS.find(s => s.id === b.dataset.id) || SALONS[0];
+    quitterSalon();
     vueChat();
   });
   const actif = app.querySelector(".c-salon.actif");
@@ -216,49 +335,60 @@ function vueChat(prefill = "") {
   form.onsubmit = async e => {
     e.preventDefault();
     const texte = form.texte.value.trim();
-    if (!texte || !salonActif) return;
+    if (!texte) return;
+    if (Date.now() - dernierEnvoi < 3200) { toast("Doucement ! Attends quelques secondes entre deux messages.", true); return; }
     const b = form.querySelector("button"); b.disabled = true;
-    const { error } = await sb.from("messages").insert({ salon_id: salonActif.id, auteur_id: profil.id, contenu: texte });
+    try {
+      const lot = writeBatch(db);
+      lot.set(doc(collection(db, "messages")), {
+        salonId: salonActif.id, auteurId: profil.id, auteurPseudo: profil.pseudo, auteurPlateforme: profil.plateforme,
+        contenu: texte, masque: false, creeLe: serverTimestamp()
+      });
+      lot.update(doc(db, "profils", profil.id), { dernierMessage: serverTimestamp() });
+      await lot.commit();
+      dernierEnvoi = Date.now();
+      form.texte.value = "";
+    } catch (err) {
+      toast(err.code === "permission-denied" ? "Message refusé : attends quelques secondes entre deux messages, et vérifie qu'il respecte le règlement." : msgErreur(err), true);
+    }
     b.disabled = false;
-    if (error) { toast(msgErreur(error), true); return; }
-    form.texte.value = "";
-    chargerMessages(true);
   };
-  if (!salonActif) { $("#c-fil").innerHTML = `<p class="vide">Aucun salon disponible.</p>`; return; }
-  chargerMessages(true);
-  quitterSalon();
-  const id = salonActif.id;
-  canal = sb.channel("salon-" + id)
-    .on("postgres_changes", { event: "*", schema: "public", table: "messages", filter: "salon_id=eq." + id }, () => chargerMessages(false))
-    .subscribe();
+  ecouterSalon();
 }
 
-async function chargerMessages(versLeBas) {
-  if (!salonActif) return;
+function ecouterSalon() {
+  quitterSalon();
+  const id = salonActif.id;
+  const q = query(collection(db, "messages"), where("salonId", "==", id), where("masque", "==", false), orderBy("creeLe", "desc"), limit(60));
+  let premier = true;
+  arretChat = onSnapshot(q, snap => {
+    if (salonActif.id !== id) return;
+    afficherMessages(lignes(snap).reverse(), premier);
+    premier = false;
+  }, err => {
+    const fil = $("#c-fil");
+    if (fil) fil.innerHTML = `<p class="erreur">${esc(msgErreur(err))}</p>`;
+  });
+}
+
+function afficherMessages(liste, versLeBas) {
   const fil = $("#c-fil");
   if (!fil) return;
-  const id = salonActif.id;
-  const { data, error } = await sb.from("messages")
-    .select("id, contenu, cree_le, auteur_id, masque, profils(pseudo, plateforme)")
-    .eq("salon_id", id).order("cree_le", { ascending: false }).limit(60);
-  if (!salonActif || salonActif.id !== id || !$("#c-fil")) return;
-  if (error) { fil.innerHTML = `<p class="erreur">${esc(msgErreur(error))}</p>`; return; }
   const enBas = fil.scrollHeight - fil.scrollTop - fil.clientHeight < 80;
-  const liste = (data || []).slice().reverse();
+  const admin = profil.role === "admin";
   fil.innerHTML = liste.length ? liste.map(m => {
-    const moi = m.auteur_id === profil.id, admin = profil.role === "admin";
+    const moi = m.auteurId === profil.id;
     return `
-    <div class="c-msg ${moi ? "moi" : ""} ${m.masque ? "masque" : ""}" data-id="${m.id}">
+    <div class="c-msg ${moi ? "moi" : ""}" data-id="${esc(m.id)}">
       <div class="c-msg-tete">
-        <strong>${esc(m.profils?.pseudo || "Membre")}</strong>
-        ${m.profils?.plateforme && m.profils.plateforme !== "Non précisé" ? `<span class="pastille">${esc(m.profils.plateforme)}</span>` : ""}
-        <time>${heure(m.cree_le)}</time>
-        ${m.masque ? `<span class="statut rum">Masqué</span>` : ""}
+        <strong>${esc(m.auteurPseudo || "Membre")}</strong>
+        ${m.auteurPlateforme && m.auteurPlateforme !== "Non précisé" ? `<span class="pastille">${esc(m.auteurPlateforme)}</span>` : ""}
+        <time>${heure(m.creeLe)}</time>
       </div>
       <p>${esc(m.contenu)}</p>
       <div class="c-msg-actions">
         ${!moi ? `<button data-act="signaler" title="Signaler ce message">🚩 Signaler</button>` : ""}
-        ${admin ? `<button data-act="${m.masque ? "afficher" : "masquer"}">${m.masque ? "👁️ Réafficher" : "🙈 Masquer"}</button>` : ""}
+        ${admin && !moi ? `<button data-act="masquer">🙈 Masquer</button>` : ""}
         ${moi || admin ? `<button data-act="supprimer">🗑️ Supprimer</button>` : ""}
       </div>
     </div>`;
@@ -270,25 +400,28 @@ async function chargerMessages(versLeBas) {
 async function actionMessage(act, id) {
   if (act === "signaler") return signaler("message", id);
   if (act === "supprimer" && !confirm("Supprimer ce message ?")) return;
-  const q = act === "supprimer"
-    ? sb.from("messages").delete().eq("id", id)
-    : sb.from("messages").update({ masque: act === "masquer" }).eq("id", id);
-  const { error } = await q;
-  if (error) toast(msgErreur(error), true);
-  else { toast(act === "supprimer" ? "Message supprimé." : act === "masquer" ? "Message masqué." : "Message réaffiché."); chargerMessages(false); }
+  try {
+    if (act === "supprimer") await deleteDoc(doc(db, "messages", id));
+    else await updateDoc(doc(db, "messages", id), { masque: true });
+    toast(act === "supprimer" ? "Message supprimé." : "Message masqué.");
+  } catch (err) { toast(msgErreur(err), true); }
 }
 
 async function signaler(type, cible) {
   const raison = prompt("Pourquoi signales-tu ce contenu ? (insulte, spam, triche, contenu choquant…)");
   if (raison === null) return;
   if (raison.trim().length < 3) { toast("Explique en quelques mots, s'il te plaît.", true); return; }
-  const { error } = await sb.from("signalements").insert({ auteur_id: profil.id, type_cible: type, cible_id: String(cible), raison: raison.trim().slice(0, 300) });
-  if (error) toast(msgErreur(error), true);
-  else toast("Merci, ton signalement a été envoyé à la modération.");
+  try {
+    await addDoc(collection(db, "signalements"), {
+      auteurId: profil.id, auteurPseudo: profil.pseudo, typeCible: type, cibleId: String(cible),
+      raison: raison.trim().slice(0, 300), statut: "ouvert", creeLe: serverTimestamp()
+    });
+    toast("Merci, ton signalement a été envoyé à la modération.");
+  } catch (err) { toast(msgErreur(err), true); }
 }
 
 // ---------- RECHERCHE D'ACTIVITÉ ----------
-async function vueActivites() {
+function vueActivites() {
   app.innerHTML = `
     <div class="c-page">
       <div class="c-titre-ligne">
@@ -304,9 +437,36 @@ async function vueActivites() {
       <div class="grille" id="a-liste"><p class="note">Chargement…</p></div>
     </div>`;
   $("#btn-annonce").onclick = formulaireAnnonce;
-  $("#a-pf").onchange = chargerAnnonces;
-  $("#a-act").onchange = chargerAnnonces;
+  $("#a-pf").onchange = afficherAnnonces;
+  $("#a-act").onchange = afficherAnnonces;
   chargerAnnonces();
+}
+
+let annoncesPubliees = [];
+async function chargerAnnonces() {
+  try {
+    const snap = await getDocs(query(collection(db, "annonces"), where("statut", "==", "publiee"), orderBy("creeLe", "desc"), limit(100)));
+    annoncesPubliees = lignes(snap);
+    afficherAnnonces();
+  } catch (err) {
+    const l = $("#a-liste"); if (l) l.innerHTML = `<p class="erreur">${esc(msgErreur(err))}</p>`;
+  }
+}
+
+function afficherAnnonces() {
+  const liste = $("#a-liste");
+  if (!liste) return;
+  const pf = $("#a-pf").value, act = $("#a-act").value;
+  const res = annoncesPubliees.filter(a => (!pf || a.plateforme === pf) && (!act || a.activite.toLowerCase().includes(act.toLowerCase())));
+  liste.innerHTML = res.length ? res.map(a => carteAnnonce(a, true)).join("")
+    : `<p class="vide">${pf || act ? `Aucune annonce${pf ? " sur " + esc(pf) : ""}${act ? " pour « " + esc(act) + " »" : ""}. Essaie « Toutes plateformes » / « Toutes activités ».` : "Aucune annonce pour l'instant. Publie la première !"}</p>`;
+  liste.querySelectorAll("[data-repondre]").forEach(b => b.onclick = () => {
+    salonActif = SALONS.find(s => s.id === "entraide");
+    onglet = "chat";
+    $("#c-onglets").querySelectorAll("button").forEach(x => x.classList.toggle("actif", x.dataset.onglet === "chat"));
+    vueChat(`@${b.dataset.repondre} `);
+  });
+  liste.querySelectorAll("[data-signaler]").forEach(b => b.onclick = () => signaler("annonce", b.dataset.signaler));
 }
 
 function formulaireAnnonce() {
@@ -334,44 +494,32 @@ function formulaireAnnonce() {
     if (v.quand.length < 2) pbs.push("le moment");
     if (!(v.places >= 1 && v.places <= 7)) pbs.push("un nombre de joueurs entre 1 et 7");
     if (pbs.length) { $("#fa-msg").innerHTML = `<p class="erreur">À compléter : ${pbs.join(", ")}.</p>`; return; }
+    if (Date.now() - derniereAnnonceLocale < 61000) { $("#fa-msg").innerHTML = `<p class="erreur">Attends une minute avant de publier une autre annonce.</p>`; return; }
     const b = f.querySelector("button[type=submit]"); b.disabled = true;
-    const { error } = await sb.from("annonces").insert({ ...v, auteur_id: profil.id });
-    b.disabled = false;
-    if (error) { $("#fa-msg").innerHTML = `<p class="erreur">${esc(msgErreur(error))}</p>`; return; }
-    $("#zone-form").innerHTML = `<div class="succes">✅ Annonce envoyée ! Elle sera visible dès qu'elle aura été validée. Tu peux suivre son statut dans l'onglet Profil.</div>`;
+    try {
+      const lot = writeBatch(db);
+      lot.set(doc(collection(db, "annonces")), { ...v, auteurId: profil.id, auteurPseudo: profil.pseudo, statut: "en_attente", creeLe: serverTimestamp() });
+      lot.update(doc(db, "profils", profil.id), { derniereAnnonce: serverTimestamp() });
+      await lot.commit();
+      derniereAnnonceLocale = Date.now();
+      $("#zone-form").innerHTML = `<div class="succes">✅ Annonce envoyée ! Elle sera visible dès qu'elle aura été validée. Tu peux suivre son statut dans l'onglet Profil.</div>`;
+    } catch (err) {
+      b.disabled = false;
+      $("#fa-msg").innerHTML = `<p class="erreur">${esc(err.code === "permission-denied" ? "Annonce refusée : attends une minute entre deux annonces et vérifie les champs." : msgErreur(err))}</p>`;
+    }
   };
 }
 
-async function chargerAnnonces() {
-  const pf = $("#a-pf").value, act = $("#a-act").value;
-  let q = sb.from("annonces").select("*, profils(pseudo)").eq("statut", "publiee").order("cree_le", { ascending: false }).limit(50);
-  if (pf) q = q.eq("plateforme", pf);
-  const { data, error } = await q;
-  const liste = $("#a-liste");
-  if (!liste) return;
-  if (error) { liste.innerHTML = `<p class="erreur">${esc(msgErreur(error))}</p>`; return; }
-  const res = (data || []).filter(a => !act || a.activite.toLowerCase().includes(act.toLowerCase()));
-  liste.innerHTML = res.length ? res.map(a => carteAnnonce(a, true)).join("")
-    : `<p class="vide">${pf || act ? `Aucune annonce${pf ? " sur " + esc(pf) : ""}${act ? " pour « " + esc(act) + " »" : ""}. Essaie « Toutes plateformes » / « Toutes activités ».` : "Aucune annonce pour l'instant. Publie la première !"}</p>`;
-  liste.querySelectorAll("[data-repondre]").forEach(b => b.onclick = () => {
-    const sal = salons.find(s => s.slug === "entraide") || salons[0];
-    salonActif = sal; onglet = "chat";
-    $("#c-onglets").querySelectorAll("button").forEach(x => x.classList.toggle("actif", x.dataset.onglet === "chat"));
-    vueChat(`@${b.dataset.repondre} `);
-  });
-  liste.querySelectorAll("[data-signaler]").forEach(b => b.onclick = () => signaler("annonce", b.dataset.signaler));
-}
-
 function carteAnnonce(a, actions) {
-  const moi = a.auteur_id === profil.id;
+  const moi = a.auteurId === profil.id;
   return `
   <div class="bloc c-annonce">
-    <div class="meta"><span class="pastille">${esc(a.plateforme)}</span><span class="pastille">👥 ${a.places} joueur${a.places > 1 ? "s" : ""}</span></div>
+    <div class="meta"><span class="pastille">${esc(a.plateforme)}</span><span class="pastille">👥 ${esc(a.places)} joueur${a.places > 1 ? "s" : ""}</span></div>
     <h3>${esc(a.activite)}</h3>
     <p><strong>🕒 ${esc(a.quand)}</strong></p>
     ${a.description ? `<p>${esc(a.description)}</p>` : ""}
-    <p class="note">Par <strong>${esc(a.profils?.pseudo || "Membre")}</strong> · ${heure(a.cree_le)}</p>
-    ${actions && !moi ? `<div class="c-msg-actions"><button data-repondre="${esc(a.profils?.pseudo || "")}">💬 Répondre dans le chat</button><button data-signaler="${a.id}">🚩 Signaler</button></div>` : ""}
+    <p class="note">Par <strong>${esc(a.auteurPseudo || "Membre")}</strong> · ${heure(a.creeLe)}</p>
+    ${actions && !moi ? `<div class="c-msg-actions"><button data-repondre="${esc(a.auteurPseudo || "")}">💬 Répondre dans le chat</button><button data-signaler="${esc(a.id)}">🚩 Signaler</button></div>` : ""}
   </div>`;
 }
 
@@ -392,33 +540,34 @@ async function vueProfil() {
         <div id="mes-annonces"><p class="note">Chargement…</p></div>
       </div>
       <div class="bloc">
-        <p><a href="#" id="voir-regles">📜 Règlement de la communauté</a></p>
+        <p><a href="#" class="lien-regles">📜 Règlement de la communauté</a></p>
         <p><a href="index.html#/mentions">⚖️ Mentions légales et données personnelles</a></p>
         <button class="btn btn-plein" id="c-deco">Se déconnecter</button>
       </div>
     </div>`;
-  $("#voir-regles").onclick = e => { e.preventDefault(); $("#c-reglement").showModal(); };
-  $("#c-deco").onclick = () => sb.auth.signOut();
+  brancherReglement();
+  $("#c-deco").onclick = () => signOut(auth);
   $("#f-profil").onsubmit = async e => {
     e.preventDefault();
     const pf = e.target.plateforme.value;
-    const { error } = await sb.from("profils").update({ plateforme: pf }).eq("id", profil.id);
-    if (error) toast(msgErreur(error), true); else { profil.plateforme = pf; toast("Profil enregistré."); }
+    try { await updateDoc(doc(db, "profils", profil.id), { plateforme: pf }); profil.plateforme = pf; toast("Profil enregistré."); }
+    catch (err) { toast(msgErreur(err), true); }
   };
-  const { data, error } = await sb.from("annonces").select("*, profils(pseudo)").eq("auteur_id", profil.id).order("cree_le", { ascending: false });
   const z = $("#mes-annonces");
-  if (!z) return;
-  if (error) { z.innerHTML = `<p class="erreur">${esc(msgErreur(error))}</p>`; return; }
+  let liste;
+  try { liste = lignes(await getDocs(query(collection(db, "annonces"), where("auteurId", "==", profil.id)))).sort(parDate); }
+  catch (err) { if (z) z.innerHTML = `<p class="erreur">${esc(msgErreur(err))}</p>`; return; }
+  if (!$("#mes-annonces")) return;
   const ST = { en_attente: ["wait", "En attente de validation"], publiee: ["ok", "Publiée"], refusee: ["rum", "Refusée"], terminee: ["theo", "Terminée"] };
-  z.innerHTML = (data || []).length ? data.map(a => `
+  z.innerHTML = liste.length ? liste.map(a => `
     <div class="c-ligne">
-      <div><strong>${esc(a.activite)}</strong> · ${esc(a.plateforme)} · ${esc(a.quand)}<br><span class="statut ${ST[a.statut][0]}">${ST[a.statut][1]}</span></div>
-      <button class="btn-lien" data-suppr="${a.id}">🗑️ Supprimer</button>
+      <div><strong>${esc(a.activite)}</strong> · ${esc(a.plateforme)} · ${esc(a.quand)}<br><span class="statut ${(ST[a.statut] || ST.en_attente)[0]}">${(ST[a.statut] || ST.en_attente)[1]}</span></div>
+      <button class="btn-lien" data-suppr="${esc(a.id)}">🗑️ Supprimer</button>
     </div>`).join("") : `<p class="vide">Tu n'as encore publié aucune annonce.</p>`;
   z.querySelectorAll("[data-suppr]").forEach(b => b.onclick = async () => {
     if (!confirm("Supprimer cette annonce ?")) return;
-    const { error } = await sb.from("annonces").delete().eq("id", b.dataset.suppr);
-    if (error) toast(msgErreur(error), true); else { toast("Annonce supprimée."); vueProfil(); }
+    try { await deleteDoc(doc(db, "annonces", b.dataset.suppr)); toast("Annonce supprimée."); vueProfil(); }
+    catch (err) { toast(msgErreur(err), true); }
   });
 }
 
@@ -431,61 +580,63 @@ async function vueAdmin() {
       <div class="bloc"><h3>Signalements ouverts</h3><div id="ad-signal"><p class="note">Chargement…</p></div></div>
       <div class="bloc"><h3>Membres suspendus</h3><div id="ad-bannis"><p class="note">Chargement…</p></div></div>
     </div>`;
+  const go = async (promesse, ok) => { try { await promesse; toast(ok); vueAdmin(); } catch (err) { toast(msgErreur(err), true); } };
+
   // Annonces en attente
-  const { data: ann } = await sb.from("annonces").select("*, profils(pseudo)").eq("statut", "en_attente").order("cree_le");
-  const za = $("#ad-annonces"); if (!za) return;
-  za.innerHTML = (ann || []).length ? ann.map(a => `
-    <div class="c-modo">${carteAnnonce(a, false)}
-      <div class="c-msg-actions"><button data-statut="publiee" data-id="${a.id}">✅ Publier</button><button data-statut="refusee" data-id="${a.id}">❌ Refuser</button></div>
-    </div>`).join("") : `<p class="vide">Aucune annonce en attente. 👍</p>`;
-  za.querySelectorAll("[data-statut]").forEach(b => b.onclick = async () => {
-    const { error } = await sb.from("annonces").update({ statut: b.dataset.statut }).eq("id", b.dataset.id);
-    if (error) toast(msgErreur(error), true); else { toast(b.dataset.statut === "publiee" ? "Annonce publiée." : "Annonce refusée."); vueAdmin(); }
-  });
+  try {
+    const ann = lignes(await getDocs(query(collection(db, "annonces"), where("statut", "==", "en_attente")))).sort((a, b) => -parDate(a, b));
+    const za = $("#ad-annonces"); if (!za) return;
+    za.innerHTML = ann.length ? ann.map(a => `
+      <div class="c-modo">${carteAnnonce(a, false)}
+        <div class="c-msg-actions"><button data-statut="publiee" data-id="${esc(a.id)}">✅ Publier</button><button data-statut="refusee" data-id="${esc(a.id)}">❌ Refuser</button></div>
+      </div>`).join("") : `<p class="vide">Aucune annonce en attente. 👍</p>`;
+    za.querySelectorAll("[data-statut]").forEach(b => b.onclick = () =>
+      go(updateDoc(doc(db, "annonces", b.dataset.id), { statut: b.dataset.statut }), b.dataset.statut === "publiee" ? "Annonce publiée." : "Annonce refusée."));
+  } catch (err) { const za = $("#ad-annonces"); if (za) za.innerHTML = `<p class="erreur">${esc(msgErreur(err))}</p>`; }
 
   // Signalements
-  const { data: sig } = await sb.from("signalements").select("*, profils(pseudo)").eq("statut", "ouvert").order("cree_le");
-  const zs = $("#ad-signal"); if (!zs) return;
-  const blocs = [];
-  for (const s of sig || []) {
-    let cible = "", auteurCible = null;
-    if (s.type_cible === "message") {
-      const { data: m } = await sb.from("messages").select("id, contenu, auteur_id, masque, profils(pseudo)").eq("id", s.cible_id).maybeSingle();
-      if (m) { auteurCible = m.auteur_id; cible = `<blockquote>« ${esc(m.contenu)} »<br><small>— ${esc(m.profils?.pseudo || "?")}${m.masque ? " · déjà masqué" : ""}</small></blockquote>`; }
-      else cible = `<p class="note">Message déjà supprimé.</p>`;
-    } else if (s.type_cible === "annonce") {
-      const { data: a } = await sb.from("annonces").select("*, profils(pseudo)").eq("id", s.cible_id).maybeSingle();
-      if (a) { auteurCible = a.auteur_id; cible = `<blockquote>${esc(a.activite)} — ${esc(a.description)}<br><small>— ${esc(a.profils?.pseudo || "?")}</small></blockquote>`; }
-      else cible = `<p class="note">Annonce déjà supprimée.</p>`;
-    } else {
-      auteurCible = s.cible_id;
-      cible = `<p class="note">Signalement d'un membre.</p>`;
+  try {
+    const sig = lignes(await getDocs(query(collection(db, "signalements"), where("statut", "==", "ouvert")))).sort((a, b) => -parDate(a, b));
+    const blocs = [];
+    for (const s of sig) {
+      let cible = "", auteurCible = null;
+      if (s.typeCible === "message" || s.typeCible === "annonce") {
+        const d = await getDoc(doc(db, s.typeCible === "message" ? "messages" : "annonces", s.cibleId)).catch(() => null);
+        if (d && d.exists()) {
+          const c = d.data(); auteurCible = c.auteurId;
+          cible = s.typeCible === "message"
+            ? `<blockquote>« ${esc(c.contenu)} »<br><small>— ${esc(c.auteurPseudo || "?")}${c.masque ? " · déjà masqué" : ""}</small></blockquote>`
+            : `<blockquote>${esc(c.activite)} — ${esc(c.description)}<br><small>— ${esc(c.auteurPseudo || "?")}</small></blockquote>`;
+        } else cible = `<p class="note">Contenu déjà supprimé.</p>`;
+      } else { auteurCible = s.cibleId; cible = `<p class="note">Signalement d'un membre.</p>`; }
+      blocs.push(`
+        <div class="c-modo">
+          <p><span class="pastille">${esc(s.typeCible)}</span> signalé par <strong>${esc(s.auteurPseudo || "?")}</strong> · ${heure(s.creeLe)}</p>
+          <p>Raison : <em>${esc(s.raison)}</em></p>
+          ${cible}
+          <div class="c-msg-actions">
+            ${s.typeCible === "message" ? `<button data-masquer="${esc(s.cibleId)}">🙈 Masquer le message</button>` : ""}
+            ${s.typeCible === "annonce" ? `<button data-refuser="${esc(s.cibleId)}">❌ Retirer l'annonce</button>` : ""}
+            ${auteurCible && auteurCible !== profil.id ? `<button data-bannir="${esc(auteurCible)}">⛔ Suspendre l'auteur</button>` : ""}
+            <button data-traite="${esc(s.id)}">✔️ Marquer traité</button>
+          </div>
+        </div>`);
     }
-    blocs.push(`
-      <div class="c-modo">
-        <p><span class="pastille">${esc(s.type_cible)}</span> signalé par <strong>${esc(s.profils?.pseudo || "?")}</strong> · ${heure(s.cree_le)}</p>
-        <p>Raison : <em>${esc(s.raison)}</em></p>
-        ${cible}
-        <div class="c-msg-actions">
-          ${s.type_cible === "message" ? `<button data-masquer="${esc(s.cible_id)}">🙈 Masquer le message</button>` : ""}
-          ${s.type_cible === "annonce" ? `<button data-refuser="${esc(s.cible_id)}">❌ Retirer l'annonce</button>` : ""}
-          ${auteurCible && auteurCible !== profil.id ? `<button data-bannir="${esc(auteurCible)}">⛔ Suspendre l'auteur</button>` : ""}
-          <button data-traite="${s.id}">✔️ Marquer traité</button>
-        </div>
-      </div>`);
-  }
-  zs.innerHTML = blocs.length ? blocs.join("") : `<p class="vide">Aucun signalement ouvert. 👍</p>`;
-  const go = async (q, ok) => { const { error } = await q; if (error) toast(msgErreur(error), true); else { toast(ok); vueAdmin(); } };
-  zs.querySelectorAll("[data-masquer]").forEach(b => b.onclick = () => go(sb.from("messages").update({ masque: true }).eq("id", b.dataset.masquer), "Message masqué."));
-  zs.querySelectorAll("[data-refuser]").forEach(b => b.onclick = () => go(sb.from("annonces").update({ statut: "refusee" }).eq("id", b.dataset.refuser), "Annonce retirée."));
-  zs.querySelectorAll("[data-bannir]").forEach(b => b.onclick = () => { if (confirm("Suspendre ce membre ? Il ne pourra plus rien publier.")) go(sb.from("profils").update({ banni: true }).eq("id", b.dataset.bannir), "Membre suspendu."); });
-  zs.querySelectorAll("[data-traite]").forEach(b => b.onclick = () => go(sb.from("signalements").update({ statut: "traite" }).eq("id", b.dataset.traite), "Signalement traité."));
+    const zs = $("#ad-signal"); if (!zs) return;
+    zs.innerHTML = blocs.length ? blocs.join("") : `<p class="vide">Aucun signalement ouvert. 👍</p>`;
+    zs.querySelectorAll("[data-masquer]").forEach(b => b.onclick = () => go(updateDoc(doc(db, "messages", b.dataset.masquer), { masque: true }), "Message masqué."));
+    zs.querySelectorAll("[data-refuser]").forEach(b => b.onclick = () => go(updateDoc(doc(db, "annonces", b.dataset.refuser), { statut: "refusee" }), "Annonce retirée."));
+    zs.querySelectorAll("[data-bannir]").forEach(b => b.onclick = () => { if (confirm("Suspendre ce membre ? Il ne pourra plus rien publier.")) go(updateDoc(doc(db, "profils", b.dataset.bannir), { banni: true }), "Membre suspendu."); });
+    zs.querySelectorAll("[data-traite]").forEach(b => b.onclick = () => go(updateDoc(doc(db, "signalements", b.dataset.traite), { statut: "traite" }), "Signalement traité."));
+  } catch (err) { const zs = $("#ad-signal"); if (zs) zs.innerHTML = `<p class="erreur">${esc(msgErreur(err))}</p>`; }
 
   // Membres suspendus
-  const { data: ban } = await sb.from("profils").select("id, pseudo").eq("banni", true).order("pseudo");
-  const zb = $("#ad-bannis"); if (!zb) return;
-  zb.innerHTML = (ban || []).length ? ban.map(p => `<div class="c-ligne"><strong>${esc(p.pseudo)}</strong><button class="btn-lien" data-debannir="${p.id}">↩️ Réactiver</button></div>`).join("") : `<p class="vide">Aucun membre suspendu.</p>`;
-  zb.querySelectorAll("[data-debannir]").forEach(b => b.onclick = () => go(sb.from("profils").update({ banni: false }).eq("id", b.dataset.debannir), "Membre réactivé."));
+  try {
+    const ban = lignes(await getDocs(query(collection(db, "profils"), where("banni", "==", true)))).sort((a, b) => a.pseudo.localeCompare(b.pseudo));
+    const zb = $("#ad-bannis"); if (!zb) return;
+    zb.innerHTML = ban.length ? ban.map(p => `<div class="c-ligne"><strong>${esc(p.pseudo)}</strong><button class="btn-lien" data-debannir="${esc(p.id)}">↩️ Réactiver</button></div>`).join("") : `<p class="vide">Aucun membre suspendu.</p>`;
+    zb.querySelectorAll("[data-debannir]").forEach(b => b.onclick = () => go(updateDoc(doc(db, "profils", b.dataset.debannir), { banni: false }), "Membre réactivé."));
+  } catch (err) { const zb = $("#ad-bannis"); if (zb) zb.innerHTML = `<p class="erreur">${esc(msgErreur(err))}</p>`; }
 }
 
 // ---------- Appli installable (PWA) ----------

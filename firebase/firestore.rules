@@ -1,0 +1,116 @@
+rules_version = '2';
+
+// =====================================================================
+// Los Santos à la loupe — Règles de sécurité Firestore (appli Communauté)
+// Console Firebase > Firestore > Règles : coller ce fichier, puis Publier.
+// =====================================================================
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------- Outils ----------
+    function connecte() { return request.auth != null; }
+    function verifie() { return connecte() && request.auth.token.email_verified == true; }
+    function cheminProfil(uid) { return /databases/$(database)/documents/profils/$(uid); }
+    function aProfil() { return connecte() && exists(cheminProfil(request.auth.uid)); }
+    function monProfil() { return get(cheminProfil(request.auth.uid)).data; }
+    function estAdmin() { return aProfil() && monProfil().role == 'admin' && monProfil().banni == false; }
+    function estActif() { return verifie() && aProfil() && monProfil().banni == false; }
+    function n() { return request.resource.data; }
+    function seulement(champs) { return n().keys().hasOnly(champs) && n().keys().hasAll(champs); }
+    function modifie() { return n().diff(resource.data).affectedKeys(); }
+    function texte(v, mini, maxi) { return v is string && v.size() >= mini && v.size() <= maxi && v.matches('(?s).*\\S.*'); }
+    function plateformes() { return ['PS5', 'PS4', 'Xbox Series', 'Xbox One', 'PC']; }
+    function salons() { return ['general', 'braquages', 'courses', 'entraide', 'secrets', 'hors-sujet']; }
+
+    // ---------- Réservation des pseudos (garantit qu'ils sont uniques) ----------
+    match /pseudos/{p} {
+      allow get: if true;            // vérifier si un pseudo est libre
+      allow list: if false;
+      allow create: if connecte()
+        && seulement(['uid'])
+        && n().uid == request.auth.uid
+        && getAfter(cheminProfil(request.auth.uid)).data.pseudoMin == p;
+      allow update, delete: if false;
+    }
+
+    // ---------- Profils ----------
+    match /profils/{uid} {
+      allow read: if connecte();
+      allow create: if connecte() && request.auth.uid == uid
+        && seulement(['pseudo', 'pseudoMin', 'plateforme', 'ageConfirme', 'reglementAccepte', 'role', 'banni', 'creeLe', 'dernierMessage', 'derniereAnnonce'])
+        && n().pseudo is string && n().pseudo.matches('^[A-Za-z0-9_-]{3,20}$')
+        && n().pseudoMin == n().pseudo.lower()
+        && (n().plateforme in plateformes() || n().plateforme == 'Non précisé')
+        && n().ageConfirme == true && n().reglementAccepte == true
+        && n().role == 'membre' && n().banni == false
+        && n().creeLe == request.time && n().dernierMessage == request.time && n().derniereAnnonce == request.time
+        && getAfter(/databases/$(database)/documents/pseudos/$(n().pseudoMin)).data.uid == uid;
+      allow update: if
+        // le membre : seulement sa plateforme et ses horodatages anti-spam
+        (request.auth.uid == uid && estActif()
+          && modifie().hasOnly(['plateforme', 'dernierMessage', 'derniereAnnonce'])
+          && (n().plateforme in plateformes() || n().plateforme == 'Non précisé')
+          && (n().dernierMessage == resource.data.dernierMessage || n().dernierMessage == request.time)
+          && (n().derniereAnnonce == resource.data.derniereAnnonce || n().derniereAnnonce == request.time))
+        // l'admin : seulement suspendre / réactiver un AUTRE membre
+        || (estAdmin() && request.auth.uid != uid && modifie().hasOnly(['banni']) && n().banni is bool);
+      allow delete: if false;
+    }
+
+    // ---------- Messages du chat ----------
+    match /messages/{id} {
+      allow read: if verifie() && (resource.data.masque == false || estAdmin());
+      allow create: if estActif()
+        && seulement(['salonId', 'auteurId', 'auteurPseudo', 'auteurPlateforme', 'contenu', 'masque', 'creeLe'])
+        && n().auteurId == request.auth.uid
+        && n().auteurPseudo == monProfil().pseudo
+        && n().auteurPlateforme == monProfil().plateforme
+        && n().salonId in salons()
+        && texte(n().contenu, 1, 1000)
+        && n().masque == false
+        && n().creeLe == request.time
+        // anti-spam : 3 secondes minimum entre deux messages
+        && request.time > monProfil().dernierMessage + duration.value(3, 's')
+        && getAfter(cheminProfil(request.auth.uid)).data.dernierMessage == request.time;
+      allow update: if estAdmin() && modifie().hasOnly(['masque']) && n().masque is bool;
+      allow delete: if verifie() && (resource.data.auteurId == request.auth.uid || estAdmin());
+    }
+
+    // ---------- Annonces « Recherche d'activité » ----------
+    match /annonces/{id} {
+      allow read: if verifie() && (resource.data.statut == 'publiee' || resource.data.auteurId == request.auth.uid || estAdmin());
+      allow create: if estActif()
+        && seulement(['auteurId', 'auteurPseudo', 'activite', 'plateforme', 'quand', 'places', 'description', 'statut', 'creeLe'])
+        && n().auteurId == request.auth.uid
+        && n().auteurPseudo == monProfil().pseudo
+        && texte(n().activite, 3, 80)
+        && n().plateforme in plateformes()
+        && texte(n().quand, 2, 60)
+        && n().places is int && n().places >= 1 && n().places <= 7
+        && n().description is string && n().description.size() <= 600
+        && n().statut == 'en_attente'          // toujours validée par la modération
+        && n().creeLe == request.time
+        // anti-spam : 1 annonce par minute maximum
+        && request.time > monProfil().derniereAnnonce + duration.value(60, 's')
+        && getAfter(cheminProfil(request.auth.uid)).data.derniereAnnonce == request.time;
+      allow update: if estAdmin() && modifie().hasOnly(['statut']) && n().statut in ['en_attente', 'publiee', 'refusee', 'terminee'];
+      allow delete: if verifie() && (resource.data.auteurId == request.auth.uid || estAdmin());
+    }
+
+    // ---------- Signalements ----------
+    match /signalements/{id} {
+      allow read: if estAdmin() || (verifie() && resource.data.auteurId == request.auth.uid);
+      allow create: if estActif()
+        && seulement(['auteurId', 'auteurPseudo', 'typeCible', 'cibleId', 'raison', 'statut', 'creeLe'])
+        && n().auteurId == request.auth.uid
+        && n().auteurPseudo == monProfil().pseudo
+        && n().typeCible in ['message', 'annonce', 'membre']
+        && n().cibleId is string && n().cibleId.size() > 0 && n().cibleId.size() <= 128
+        && texte(n().raison, 3, 300)
+        && n().statut == 'ouvert'
+        && n().creeLe == request.time;
+      allow update: if estAdmin() && modifie().hasOnly(['statut']) && n().statut in ['ouvert', 'traite'];
+      allow delete: if false;
+    }
+  }
+}
